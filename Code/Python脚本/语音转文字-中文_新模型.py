@@ -90,24 +90,25 @@ def transcribe_audio_file(model, input_path, output_path, language):
 
 # 批量处理文件夹
 def transcribe_directory(model, folder_path, language, skip_existing=True):
-    for root, dirs, files in os.walk(folder_path):
-        dirs.sort()
-        if SUBTITLE_DIR_NAME in dirs:
-            dirs.remove(SUBTITLE_DIR_NAME)
+    for file in sorted(os.listdir(folder_path)):
+        video_path = os.path.join(folder_path, file)
 
-        for file in sorted(files):
-            if file.lower().endswith(MEDIA_EXTENSIONS):
-                video_path = os.path.join(root, file)
-                output_path = get_output_path(video_path)
-                if skip_existing and has_existing_transcript(video_path, output_path):
-                    print(f"已存在，跳过: {output_path}")
-                    continue
+        if not os.path.isfile(video_path):
+            continue
 
-                print(f"正在转录: {video_path}")
-                try:
-                    transcribe_audio_file(model, video_path, output_path, language)
-                except Exception as e:
-                    print(f"{video_path} 转录失败: {e}")
+        if file.lower().endswith(MEDIA_EXTENSIONS):
+            output_path = get_output_path(video_path)
+
+            if skip_existing and has_existing_transcript(video_path, output_path):
+                print(f"已存在，跳过: {output_path}")
+                continue
+
+            print(f"正在转录: {video_path}")
+            try:
+                transcribe_audio_file(model, video_path, output_path, language)
+            except Exception as e:
+                print(f"{video_path} 转录失败: {e}")
+
 
 # 入口函数
 def cooking(input_path, whisper_model_name):
@@ -131,6 +132,6 @@ def cooking(input_path, whisper_model_name):
         print(f"提供的路径无效：{input_path}")
 
 if __name__ == "__main__":
-    input_path = '/Users/jiangsai/Downloads/Trading/veilflame'
+    input_path = '/Users/jiangsai/Downloads/Trading/veilflame/02 - 必修2'
     whisper_model_name = "medium"  # 可用: "tiny", "base", "small", "medium", "large-v3"
     cooking(input_path, whisper_model_name)
