@@ -734,6 +734,14 @@
   1. **不要过度优化系统**：这套系统经过严格回测，在规则卡死的情况下胜率 **> 70%**，配合 3R 的盈亏比，优势已经极其巨大
   2. **大不了当天没有交易，这非常正常**：交易员爆仓、心态爆炸的根本原因，99% 都是因为**过度交易（Over-trading），不要盲目增加交易频次**
   3. **把交易变成无情绪、机械化的工作**：不要花时间去主观预测当天的市场偏见，到地方出形态就做，不出就等着。这能帮你避开了所有的震荡绞肉机，能让你在市场中活下去
+  
+- **案例**
+
+  ![image-20260608010247954](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608010247954.png)
+
+  ![image-20260608010558186](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608010558186.png)
+  
+  ![image-20260608010921675](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608010921675.png)
 
 -------
 
