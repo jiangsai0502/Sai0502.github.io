@@ -632,20 +632,22 @@
 
 #### 013.压刺剥头皮系统
 
-> 专为 NQ 的 F1 设计的 **机械化右侧系统**，在 S/R 上，结合吸收与反向 Pinbar 陷阱入场
+> 专为 NQ 的 F1 设计的 **机械化右侧系统**
+>
+> 当价格来到 **S/R** 或 **某个关键位** 时，首先找 **吸收 + 底分型**，随后在**上涨过程**出现 **上影线pinbar（吸收加分）**，记住这个上影线的高点不能高于前方的高点，此时如果止损足够小，就可以在上影线挂突破单进场
+>
+> 完整逻辑：在关键位 -> 空头被吸收 -> 尝试上涨碰到压力位，多头暂时也被吸收（出上影线），若多头继续发力，则可跟随多头动能上车
 
-* **唯一关键位： S/R 区域**
+* **S/R 区域**
 
-  > 该系统**只在 S/R 附近等信号**，没有 S/R 则坚决空仓
-
-  - **形态要求**：有明显的单边强力突破（好大哥），被突破的高/低点（或震荡区间的边沿）即定义为 S/R
+  - **形态要求**：有明显的强力突破（好大哥），①波段高/低点突破 或 ②震荡区间边沿突破 均可
   - **突破要求**：好大哥突破时必须 **带动能、有失衡**
     - *禁忌（直接放弃）*：插针微幅突破，随后立刻陷入窄幅横盘震荡，此 S/R 无效
   - **使用寿命**：每个 S/R 可以用2次，第3次很可能就失效了
   - **深度回调的处理**
     - *过滤规则*：若回调过深，直接把之前的多头突破结构给跌破了（插针太深或肉眼可见转空），说明多头防线失效，直接**放弃**
     - *可接受情况*：若是插针瞬间拉回，收长影线，即被强势拒绝，并在 S/R 附近快速形成底分型，这种深度回调可以接受
-
+  
 * **订单流入场模型：压刺与双吸收**
 
   * **压刺**
@@ -666,10 +668,6 @@
 
   * **双吸收（激进形态）**
 
-    ![image-20260602183325203](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260602183325203.png)
-
-    ![image-20260604180122124](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260604180122124.png)
-
     ![image-20260604180230925](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260604180230925.png)
 
     * **第一步（左侧）**：价格砸向 S/R，在底部爆出空头大单被吸收，形成 **带吸收的底分型**
@@ -678,7 +676,7 @@
 
     * **第三步（挂单）**：在第2个 **带吸收的底分型** 的上方挂 **买入突破单**
 
-      > 由于同一位置出现两次强烈的吸收防御，具备极高的概率优势，可以省去寻找上影线的步骤
+      > 同一位置出现两次强烈的吸收防御，具备极高的概率优势，可省去寻找上影线的步骤
 
 - **执行清单**
 
@@ -742,6 +740,38 @@
   ![image-20260608010558186](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608010558186.png)
   
   ![image-20260608010921675](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608010921675.png)
+  
+  ![image-20260608161537631](/Users/jiangsai/Library/Application Support/typora-user-images/image-20260608161537631.png)
+  
+  ![image-20260608162717986](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608162717986.png)
+  
+  ![image-20260608164033547](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608164033547.png)
+  
+  ![image-20260608165055860](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608165055860.png)
+  
+  ![image-20260608165937694](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608165937694.png)
+  
+  ![image-20260608171039753](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608171039753.png)
+  
+  ![image-20260608174102537](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608174102537.png)
+  
+  ![image-20260608174448073](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608174448073.png)
+  
+  ![image-20260608174640154](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608174640154.png)
+  
+  ![image-20260608174838706](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608174838706.png)
+  
+  ![image-20260608175055476](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608175055476.png)
+  
+  ![image-20260608175254231](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608175254231.png)
+  
+  ![image-20260608170932665](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608170932665.png)
+  
+  ![image-20260608170525205](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608170525205.png)
+  
+- 关键位的4种入场形态
+
+  ![image-20260608172930439](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608172930439.png)
 
 -------
 
@@ -838,9 +868,9 @@
   >
   > 如果行情在关键位持续震荡或出现大量内包K线，中间产生的小失衡不断被后续K线无情填补，**此时绝不能入场**。必须耐心等待一次流动的清扫，并看到产生**被市场尊重、未被填补的全新空头/多头堆叠失衡**时，才是最安全的鸣枪信号。
 
-------
+## 必修课
 
-### 001 - 介绍课
+#### 001 - 介绍课
 
 1. 软件要求
 
@@ -922,9 +952,7 @@
    >
    >    > 用法：显示 NY 美盘 0:00 价格，8:30 价格，作为关键位
 
-------
-
-### 002 - 期货与期权基础知识
+#### 002 - 期货与期权基础知识
 
 1. Tick：价格最小变动单位
 
@@ -1003,9 +1031,7 @@
    >    > - 在关键 Gamma 位附近寻找高概率入场点。
    >    > - 作为止盈参考位。
 
------
-
-### 003-直播答疑
+#### 003-直播答疑
 
 1. 挂单
 
@@ -1149,6 +1175,11 @@
 - 结合更高时间框架的关键位使用效果更好。
 - 实时交易中：等模型 + 等关键位置 + 看足迹确认。
 
+#### IV模型
+
+![image-20260608161154354](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608161154354.png)
+
+![image-20260608161242049](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260608161242049.png)
 
 
 
@@ -1156,12 +1187,7 @@
 
 
 
-
-
-
-
-
-
+大周期POI，出双顶双吸收（2B），然后空头发力出 IV 或 金K，出压刺，挂突破单
 
 
 
@@ -1231,7 +1257,7 @@ iv模型：清扫 + ifvg
    >
    >       ![image-20260604150905951](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260604150905951.png)
 
-5. 常用指标
+5. 常用功能
 
    > 1. 自带模板
    >
@@ -1248,7 +1274,7 @@ iv模型：清扫 + ifvg
    >    > * 用法1：一般盘前拉一下亚欧盘的明显波段，找最大空头Delta、最大多头Delta、Delta 附近的LVN 作关键位
    >    > * 用法2：盘中确定要跟随的大哥，拉一下，确定回调的关键位
    >
-   >    > ![image-20260521170414557](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260521170414557.png)
+   >    > ![image-20260610121417921](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260610121417921.png)
    >
    >    > * 增加 Delta 对比度：按小键盘 NUM + 、NUM -
    >    >
@@ -1280,15 +1306,40 @@ iv模型：清扫 + ifvg
    >
    > 4. VWAP
    >
-   >    > 一直放在哪里么，好像既不用来入场，也不用来出场，不知其用
+   >    > ![image-20260610113920434](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260610113920434.png)
    >
    > 5. 大单（Big Trades）
    >
-   >    > 用法：作为支阻，没被实体打穿，则可使用2-3次
-   >
    >    > i哥会在40-60之间调整
    >
-   >    > ![image-20260521171218324](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260521171218324.png)
+   >    > ![image-20260610190114927](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260610190114927.png)
+   >    >
+   >    > 1. 判断是否大单：「数据设置」-「筛选模式」
+   >    >
+   >    >    1. 说明：即手动筛选，选“说明”时，下方的 Filter Min 和 Filter Max 才有意义
+   >    >
+   >    >       1. Filter Min：60，只展示 ≥ 60手的大单
+   >    >       2. Filter Max：默认0，无上限
+   >    >
+   >    >    2. 自动：选“自动”时，下方的 Automatic - Intensity 才有意义，其选项的意义如下
+   >    >
+   >    >       1. Low：很小的单子也会显示
+   >    >       2. Medio：很小的单子会过滤掉（最常用）
+   >    >       3. Strong：大单和中不溜的单子同时出现时只显示更大的单子
+   >    >
+   >    >       > 选“自动”后，重新计算一下「选项」-「Tool」-「Big Trades Analysis」-选要重新计算的品种，如果还没变化，reload一下图表，或重启App
+   >    >
+   >    > 2. 大单的圆球大小：「绘图设置」-「Size」
+   >    >
+   >    >    1. 标淮差：数值越小，气泡大小差异就更大，对 NQ 先试 1.20 ~ 1.80
+   >    >    2. 最小 Size：对 NQ 先试 10 ~ 14
+   >    >    3. 最大 Size：对 NQ 先试 20 ~ 30
+   >    >
+   >    > 3. 大单聚合：「数据设置」-「输入设置」
+   >    >
+   >    >    1. Aggregate Trades：会把短时间同价位的小成交聚合成一个更大的成交，气泡会更明显
+   >    >
+   >    > 
    >
    > 6. 单K POC（Bar Poc）
    >
@@ -1300,7 +1351,11 @@ iv模型：清扫 + ifvg
    >
    > 8. 盈亏比工具
    >
-   >    > ![image-20260521173753244](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260521173753244.png)
+   >    > ![image-20260609153934304](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260609153934304.png)
+   >
+   > 9. 回放
+   >
+   >    > ![image-20260609152340346](/Users/jiangsai/Library/Application Support/typora-user-images/image-20260609152340346.png)
 
 ---------
 
