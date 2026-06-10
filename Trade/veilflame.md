@@ -1339,7 +1339,13 @@ iv模型：清扫 + ifvg
    >    >
    >    >    1. Aggregate Trades：会把短时间同价位的小成交聚合成一个更大的成交，气泡会更明显
    >    >
-   >    > 
+   >    > 4. 大单横线提醒：「ZONES SETTINGS」
+   >    >
+   >    >    1. Biggest only：启用
+   >    >    2. Shadow mode：影线里的大单展示出来，选 All
+   >    >    3. Body mode：实体里的大单标记出来，选 All
+   >    >
+   >    >    > All：所有都展示；Trend Only：只展示顺势的；Reverse Only：只展示反转的
    >
    > 6. 单K POC（Bar Poc）
    >
