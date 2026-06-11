@@ -306,6 +306,105 @@
     };
   }
 
+  function num(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function firstNumber(obj, keys) {
+    if (!obj) return null;
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const n = num(obj[key]);
+        if (n !== null) return n;
+      }
+    }
+    return null;
+  }
+
+  function positionEntryPrice(position) {
+    return firstNumber(position, [
+      'avgPrice',
+      'averagePrice',
+      'avgPx',
+      'netPrice',
+      'entryPrice',
+      'openPrice',
+      'price'
+    ]);
+  }
+
+  function unrealizedPnl(position) {
+    return firstNumber(position, [
+      'unrealizedPnl',
+      'unrealizedPnL',
+      'openPnl',
+      'openPnL',
+      'pnl',
+      'profitAndLoss'
+    ]);
+  }
+
+  function positionCurrentPrice(position, pointValue) {
+    const direct = firstNumber(position, [
+      'lastPrice',
+      'markPrice',
+      'marketPrice',
+      'currentPrice',
+      'close',
+      'last'
+    ]);
+    if (direct !== null) return direct;
+    const entry = positionEntryPrice(position);
+    const pnl = unrealizedPnl(position);
+    const qty = positionQty(position);
+    const dollarsPerPoint = Number(pointValue || 10);
+    if (entry === null || pnl === null || !qty || !dollarsPerPoint) return null;
+    const points = pnl / (Math.abs(qty) * dollarsPerPoint);
+    return qty > 0 ? entry + points : entry - points;
+  }
+
+  function stopPrice(order) {
+    return firstNumber(order, [
+      'stopPrice',
+      'stopLoss',
+      'stop_loss',
+      'triggerPrice',
+      'activationPrice',
+      'price'
+    ]);
+  }
+
+  function currentPositionSummary(state, symbol, pointValue) {
+    const position = positionForSymbol(state, symbol);
+    if (!position) return null;
+    const qty = positionQty(position);
+    const protection = protectionSummary(state, symbol);
+    return {
+      symbol: positionInstrument(position) || symbol,
+      qty,
+      direction: directionForQty(qty),
+      entryPrice: positionEntryPrice(position),
+      currentPrice: positionCurrentPrice(position, pointValue),
+      hasStop: protection.hasStop,
+      hasProfit: protection.hasProfit,
+      workingOrders: protection.workingOrders
+    };
+  }
+
+  function firstCurrentPositionSummary(state, preferredSymbol, pointValue) {
+    const preferred = currentPositionSummary(state, preferredSymbol, pointValue);
+    if (preferred) return preferred;
+    const positions = Array.isArray(state.positions) ? state.positions : [];
+    for (const position of positions) {
+      const symbol = positionInstrument(position);
+      if (!symbol || !positionQty(position)) continue;
+      const summary = currentPositionSummary(state, symbol, pointValue);
+      if (summary) return summary;
+    }
+    return null;
+  }
+
   function positionForSymbol(state, symbol) {
     const positions = Array.isArray(state.positions) ? state.positions : [];
     return positions.find(p => sameInstrument(positionInstrument(p), symbol) && positionQty(p) !== 0) || null;
@@ -329,6 +428,93 @@
       }
     }
     return null;
+  }
+
+  function scalarOrderBody(order) {
+    const omit = /^(id|orderId|status|ordStatus|filled|remaining|created|updated|timestamp|time|account|accountId|reject|error|message|children|legs)$/i;
+    const out = {};
+    for (const [key, value] of Object.entries(order || {})) {
+      if (omit.test(key)) continue;
+      if (value === null || value === undefined) continue;
+      if (typeof value === 'object') continue;
+      out[key] = String(value);
+    }
+    return out;
+  }
+
+  function setStopBodyPrice(body, price) {
+    const keys = Object.keys(body);
+    const priceKeys = keys.filter(k => /stop|trigger|activation|price/i.test(k) && !/profit|target|take/i.test(k));
+    const targets = priceKeys.length ? priceKeys : ['stopPrice', 'price'];
+    targets.forEach(k => { body[k] = String(price); });
+    return body;
+  }
+
+  function buildReplacementStopBody(stopOrder, position, symbol, price) {
+    const body = setStopBodyPrice(scalarOrderBody(stopOrder), price);
+    body.instrument ||= symbol;
+    body.symbol ||= symbol;
+    body.contract ||= symbol;
+    body.qty ||= String(Math.abs(positionQty(position)));
+    body.quantity ||= String(Math.abs(positionQty(position)));
+    body.side ||= positionQty(position) > 0 ? 'sell' : 'buy';
+    body.action ||= body.side;
+    body.type ||= 'stop';
+    body.orderType ||= 'stop';
+    body.durationType ||= 'Day';
+    return body;
+  }
+
+  async function modifyStopOrder(accId, stopOrder, position, symbol, price) {
+    const id = stopOrder.id || stopOrder.orderId;
+    if (!id) throw new Error('stop order has no id');
+    const headers = {
+      Authorization: 'Bearer ' + auth.jwt,
+      Accept: 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
+    const updateBody = setStopBodyPrice({}, price);
+    const attempts = [];
+    for (const method of ['PATCH', 'PUT']) {
+      const res = await fetch(auth.baseUrl + '/accounts/' + accId + '/orders/' + id + '?locale=en&requestId=' + COPY_TAG + '_move_stop_' + Date.now(), {
+        method,
+        headers,
+        body: encodeBody(updateBody)
+      });
+      const text = await res.text();
+      let json = null;
+      try { json = JSON.parse(text); } catch {}
+      attempts.push({ method, status: res.status, ok: res.ok, preview: text.slice(0, 250) });
+      if (res.ok && (!json || json.s !== 'error')) {
+        return { method, id, response: json || text };
+      }
+    }
+
+    const replacementBody = buildReplacementStopBody(stopOrder, position, symbol, price);
+    const place = await fetch(auth.baseUrl + '/accounts/' + accId + '/orders?locale=en&requestId=' + COPY_TAG + '_new_stop_' + Date.now(), {
+      method: 'POST',
+      headers,
+      body: encodeBody(replacementBody)
+    });
+    const placeText = await place.text();
+    let placeJson = null;
+    try { placeJson = JSON.parse(placeText); } catch {}
+    attempts.push({ method: 'POST replacement', status: place.status, ok: place.ok, preview: placeText.slice(0, 250) });
+    if (!place.ok || (placeJson && placeJson.s === 'error')) {
+      throw new Error('failed to move stop; attempts=' + JSON.stringify(attempts));
+    }
+
+    const cancel = await fetch(auth.baseUrl + '/accounts/' + accId + '/orders/' + id + '?locale=en&requestId=' + COPY_TAG + '_old_stop_cancel_' + Date.now(), {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + auth.jwt, Accept: 'application/json' }
+    });
+    return {
+      method: 'POST replacement then DELETE old stop',
+      oldStopId: id,
+      replacement: placeJson || placeText,
+      cancelOldOk: cancel.ok,
+      attempts
+    };
   }
 
   async function cancelWorkingOrders(accId, state, symbol) {
@@ -545,6 +731,100 @@
     return { ok: false, error: 'no Tradovate history endpoint returned bars', symbol, barsRequested: bars, baseUrl: auth.baseUrl, attempts };
   }
 
+  async function manualBreakevenTask(task) {
+    const a = authStatus();
+    if (!a.loggedIn) throw new Error('Tradovate login not detected or expired');
+    const payload = task.payload || {};
+    const symbol = payload.symbol || 'MGCM6';
+    const triggerPrice = Number(payload.triggerPrice);
+    const pointValue = Number(payload.pointValue || 10);
+    if (!Number.isFinite(triggerPrice)) throw new Error('manual breakeven triggerPrice is missing');
+
+    const accId = await accountId();
+    await refreshAccount(accId);
+    const state = liveState[accId] || {};
+    const position = positionForSymbol(state, symbol);
+    if (!position) {
+      return { ok: false, error: 'no open position detected for ' + symbol };
+    }
+
+    const summary = currentPositionSummary(state, symbol, pointValue);
+    if (!summary || !summary.direction) {
+      return { ok: false, error: 'could not detect position direction', position };
+    }
+    if (!Number.isFinite(summary.entryPrice)) {
+      return { ok: false, error: 'could not detect entry price from Tradovate position', position };
+    }
+    if (!Number.isFinite(summary.currentPrice)) {
+      return {
+        ok: true,
+        pending: true,
+        reason: 'waiting: current market price not detected yet',
+        accountId: accId,
+        symbol,
+        triggerPrice,
+        position: summary
+      };
+    }
+
+    const reached = summary.direction === 'long'
+      ? summary.currentPrice >= triggerPrice
+      : summary.currentPrice <= triggerPrice;
+    if (!reached) {
+      return {
+        ok: true,
+        pending: true,
+        reason: 'waiting for trigger price',
+        accountId: accId,
+        symbol,
+        triggerPrice,
+        position: summary
+      };
+    }
+
+    const stopOrders = workingOrdersForSymbol(state, symbol).filter(isStopOrder);
+    if (!stopOrders.length) {
+      return { ok: false, error: 'trigger reached but no working stop order detected', accountId: accId, symbol, position: summary };
+    }
+
+    const offset = Number(payload.breakevenOffset || 0);
+    const breakevenPrice = summary.direction === 'long'
+      ? Math.round((summary.entryPrice + offset) * 10) / 10
+      : Math.round((summary.entryPrice - offset) * 10) / 10;
+    const currentStopPrice = stopPrice(stopOrders[0]);
+    if (currentStopPrice !== null) {
+      const alreadyProtected = summary.direction === 'long'
+        ? currentStopPrice >= breakevenPrice
+        : currentStopPrice <= breakevenPrice;
+      if (alreadyProtected) {
+        return {
+          ok: true,
+          skipped: true,
+          reason: 'stop is already at or beyond breakeven',
+          accountId: accId,
+          symbol,
+          triggerPrice,
+          breakevenPrice,
+          currentStopPrice,
+          position: summary
+        };
+      }
+    }
+
+    const moved = await modifyStopOrder(accId, stopOrders[0], position, symbol, breakevenPrice);
+    await refreshAccount(accId);
+    return {
+      ok: true,
+      accountId: accId,
+      symbol,
+      triggerPrice,
+      breakevenPrice,
+      previousStopPrice: currentStopPrice,
+      position: summary,
+      moved
+    };
+  }
+
   window.addEventListener('message', async function(event) {
     const data = event.data || {};
     if (data.source !== 'mss-relay-client') return;
@@ -555,20 +835,24 @@
     try {
       if (data.action === 'status') {
         let unprotectedPosition = null;
+        let currentPosition = null;
         try {
           const accId = await accountId();
           await refreshAccount(accId);
           const state = liveState[accId] || {};
           unprotectedPosition = firstUnprotectedPosition(state);
           if (unprotectedPosition) unprotectedPosition.accountId = accId;
+          currentPosition = firstCurrentPositionSummary(state, 'MGCM6', 10);
         } catch {}
-        reply({ ok: true, auth: authStatus(), accounts, templateReady: !!orderTemplate, templateCapturedAt: orderTemplate && orderTemplate.capturedAt, consumedWaves: Object.keys(waveLedger).length, unprotectedPosition });
+        reply({ ok: true, auth: authStatus(), accounts, templateReady: !!orderTemplate, templateCapturedAt: orderTemplate && orderTemplate.capturedAt, consumedWaves: Object.keys(waveLedger).length, unprotectedPosition, currentPosition });
       } else if (data.action === 'executeSignal') {
         reply(await placeSignal(data.payload.task));
       } else if (data.action === 'flatten') {
         reply(await flattenTask());
       } else if (data.action === 'historyProbe') {
         reply(await historyProbeTask(data.payload.task));
+      } else if (data.action === 'manualBreakeven') {
+        reply(await manualBreakevenTask(data.payload.task));
       }
     } catch (err) {
       reply({ ok: false, error: err.message || String(err) });

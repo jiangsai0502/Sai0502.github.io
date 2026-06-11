@@ -72,12 +72,15 @@
         ? await askPage('flatten', { task }, 60000)
         : task.kind === 'historyProbe'
           ? await askPage('historyProbe', { task }, 90000)
-          : await askPage('executeSignal', { task }, 60000);
+          : task.kind === 'manualBreakeven'
+            ? await askPage('manualBreakeven', { task }, 60000)
+            : await askPage('executeSignal', { task }, 60000);
 
       await relayPost('/api/extension/report', {
         clientId: CLIENT_ID,
         taskId: task.id,
         ok: !!result.ok,
+        pending: !!result.pending,
         message: result.ok ? 'extension executed task' : (result.error || 'extension task failed'),
         result
       });

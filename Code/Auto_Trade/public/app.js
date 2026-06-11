@@ -35,6 +35,13 @@ function render(data) {
       <input id="${key}" type="${type}" ${type === 'checkbox' ? (s[key] ? 'checked' : '') : `value="${s[key]}"`}>
     </div>
   `).join('');
+  const p = data.state.extension?.currentPosition;
+  $('manualPosition').innerHTML = p ? `
+    <div class="row"><label>当前持仓</label><strong>${p.symbol || '-'} ${p.direction || '-'} ${p.qty || ''}</strong></div>
+    <div class="row"><label>开仓均价</label><strong>${p.entryPrice ?? '-'}</strong></div>
+    <div class="row"><label>当前价格</label><strong>${p.currentPrice ?? '-'}</strong></div>
+    <div class="row"><label>止损保护</label><strong class="${p.hasStop ? 'ok' : 'bad'}">${p.hasStop ? '已检测' : '未检测'}</strong></div>
+  ` : '<div class="muted">未检测到当前持仓。开仓后点“刷新状态”。</div>';
   $('events').innerHTML = data.state.events.slice(0, 20).map(e => `
     <div class="event">
       <small>${e.at} · ${e.level || 'info'}</small>
@@ -77,6 +84,16 @@ $('testAuth').onclick = async () => {
 $('flatten').onclick = async () => {
   if (!confirm('确认全平并撤所有挂单？')) return;
   const r = await post('/api/flatten');
+  if (!r.ok) alert(r.error);
+};
+
+$('startBreakeven').onclick = async () => {
+  const triggerPrice = Number($('beTrigger').value);
+  if (!Number.isFinite(triggerPrice)) {
+    alert('请输入推保触发价');
+    return;
+  }
+  const r = await post('/api/manual-breakeven', { triggerPrice });
   if (!r.ok) alert(r.error);
 };
 

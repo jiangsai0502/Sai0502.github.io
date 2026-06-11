@@ -99,6 +99,18 @@ async function route(req, res) {
     return;
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/manual-breakeven') {
+    try {
+      const params = JSON.parse(await readBody(req) || '{}');
+      const result = engine.queueManualBreakeven(params);
+      sendJson(res, 200, { ok: true, result });
+    } catch (err) {
+      addEvent(state, { level: 'error', message: `manual breakeven error: ${err.message}` });
+      sendJson(res, 500, { ok: false, error: err.message });
+    }
+    return;
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/extension/next-task') {
     const clientId = url.searchParams.get('clientId') || '';
     sendJson(res, 200, engine.nextTask(clientId));

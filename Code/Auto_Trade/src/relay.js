@@ -177,6 +177,14 @@ export class RelayEngine {
     this.state.extension.lastSeenAt = new Date().toISOString();
     const task = this.state.tasks.find(t => t.id === report.taskId);
     if (task) {
+      if (report.pending) {
+        task.status = 'pending';
+        task.dispatchedAt = null;
+        task.lastError = '';
+        task.result = report.result || null;
+        saveState(this.state);
+        return { ok: true };
+      }
       task.status = report.ok ? 'completed' : 'error';
       task.completedAt = new Date().toISOString();
       task.lastError = report.ok ? '' : (report.error || report.message || 'unknown error');
@@ -238,6 +246,27 @@ export class RelayEngine {
     });
     this.state.tasks.unshift(task);
     addEvent(this.state, { level: 'info', message: 'history probe queued for extension', taskId: task.id, payload: task.payload });
+    saveState(this.state);
+    return { ok: true, task };
+  }
+
+  queueManualBreakeven(params = {}) {
+    const triggerPrice = roundPrice(params.triggerPrice);
+    if (!Number.isFinite(triggerPrice)) throw new Error('missing numeric triggerPrice');
+    const task = newTask('manualBreakeven', {
+      symbol: params.symbol || this.config.strategy.contract,
+      triggerPrice,
+      breakevenOffset: Number(params.breakevenOffset || 0),
+      pointValue: Number(params.pointValue || 10),
+      reason: 'manual breakeven manager'
+    });
+    this.state.tasks.unshift(task);
+    addEvent(this.state, {
+      level: 'info',
+      message: `manual breakeven queued: trigger ${triggerPrice}`,
+      taskId: task.id,
+      payload: task.payload
+    });
     saveState(this.state);
     return { ok: true, task };
   }
