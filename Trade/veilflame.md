@@ -1,4 +1,73 @@
-## i哥做单总结
+### 6.12 Lara 的5把刀
+
+![256ec27c740800ea7d4545e86a12c247](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/256ec27c740800ea7d4545e86a12c247.png)
+
+1. 开盘前30分钟做单方式
+   1. 针对亚欧盘的放量起点的入场方式：清扫放量起点 + 吸收，然后压刺
+   2. 针对亚欧盘的极值点的入场方式：① 清扫亚欧盘极值点 + IV（市价进/挂50%/压刺） ② 清扫 + MSS / CISD（压刺 / 挂颈线）
+2. 开盘30分钟后做单方式
+   1. Fibo61.8策略
+   2. 波段回撤清扫内部流动性策略
+3. 亚欧盘剥头皮策略（高成交量时段）
+   1. 亚盘 7 - 9 am
+   2. 欧盘16 - 18 pm
+
+
+
+
+
+1. 回调到618，等吸收直接压刺、吸收+压刺
+2. 扫掉亚欧高低点，出IV，IV要等50%挂单
+3. 放量K战法（tradingview 的 VolumeCandle 指标）
+   1. 盘前关键位：亚欧盘波段起点的 F5 放量K的开盘价
+   2. 开盘关键位：美盘开盘的 F5 放量K的开盘价
+   3. 策略：观察 F1 
+
+
+
+
+
+### 06.11 基于大单的剥头皮策略（白天NQ）
+
+![image-20260611212720776](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611212720776.png)
+
+![image-20260612192534183](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260612192534183.png)
+
+![image-20260612193537065](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260612193537065.png)
+
+> 系统优势：类似 **Fibo 618**，条件相对客观（顺势），执行相对简单（楞挂）
+>
+> 1. 背景：NQ 亚欧盘 + F1
+>
+> 2. 大单横线有效性判断：F1 MSS 定趋势
+>
+>    * 趋势行情：只顺势做，多头只找底部大单横线，空头只找顶部大单横线
+>    * 震荡行情：高空低多，区间上轨找做空大单横线，区间下轨找做多大单横线
+>
+> 3. 技巧：因为是挂单，剥头皮，因此要及时推保
+>
+>    > 剥头皮，风险永远是第一位
+>
+> 4. Big Trades 指标对大单的识别技巧
+>
+>    > * 问题：`筛选模式 = 自动` ，价格达到关键位，没出吸收，价格反弹，随后切换 `筛选模式 = 手动` ，`Filter Min = 40` ，发现有 51手吸收，错过1单。
+>    >
+>    >   > 发现有的时候30多手都会显示为大单，有的时候50多手都不会显示为大单
+>    >
+>    > * 解释：
+>    >   * `筛选模式 = 手动` 时，≥ Filter Min 才会显示，Filter Min 用 40 or 60，完全看个人经验
+>    >   * `筛选模式 = 自动` 时，Big Trades Analysis 算法，会根据品种、价格行为、波动率动态、灵敏度 Low / Medium / Strong 来自动计算阈值，显示综合评定下的异常大单
+>    >
+>    > * 结论：**开两个 Big Trades**
+>    >   * Big Trades - Filter Mode: Manual
+>    >     - Manual Min: 40 or 60（用来做入场确认）
+>    >   * Big Trades - Filter Mode: Automatic
+>    >     - Intensity: Medium（用来看真正异常的大资金痕迹）
+>    > * 实操：价格打到关键位，而自动模式没显示，但怀疑应该有大单，可立刻切到 Manual 模板
+
+-----
+
+### i哥做单总结
 
 1. 盘前关键位（不动）：最近的 VP（VAH VAL POC），白天的 VP 的 Delta
 2. 盘中关键位（一直在变）：一直在动，开盘极速运动的VP 的 Delta
@@ -9,6 +78,8 @@
 技术稳定性
 
 最最最重要的是，开盘被K线刺激，带着走了
+
+-------
 
 ## 03 - 拍卖理论
 
@@ -1256,6 +1327,10 @@ iv模型：清扫 + ifvg
    >       到了换月时间，DeepChart会自动加载新合约，但还需要手动操作一下
    >
    >       ![image-20260604150905951](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260604150905951.png)
+   >       
+   >    1. 换源时要去「选项」「管理交易标的」把 **标的** 改成 **新源**，否则会出现**连上数据K线不动的情况**
+   >    
+   >       ![image-20260611193116606](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611193116606.png)
 
 5. 常用功能
 
@@ -1308,44 +1383,60 @@ iv模型：清扫 + ifvg
    >
    >    > ![image-20260610113920434](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260610113920434.png)
    >
-   > 5. 大单（Big Trades）
+   > 5. 大单（Deep Trades 和 Big Trades）
    >
-   >    > i哥会在40-60之间调整
-   >
+   >    > * Deep Trades 和 Big Trades 都是用来展示大单的
+   >    > * Deep Trades 以圆球气泡形式展示；Big Trades 以数字形式展示。2个设置完全一样
+   >    >   * Deep Trades 只需要设置「数据设置」和「绘图设置」
+   >    >   * Big Trades 需要设置「数据设置」、「绘图设置」、「Zones Settings」和「警报设置」
+   >    >
    >    > ![image-20260610190114927](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260610190114927.png)
+   >
+   >    > 1. 「数据设置」：
    >    >
-   >    > 1. 判断是否大单：「数据设置」-「筛选模式」
+   >    >    1. `加载天数`：5天 / 10天 随意（越少图表越流畅）
    >    >
-   >    >    1. 说明：即手动筛选，选“说明”时，下方的 Filter Min 和 Filter Max 才有意义
+   >    >    2. `输入数据`：Aggregate Trades 会把短时间同价位的小成交聚合成一个大单，气泡更明显
    >    >
-   >    >       1. Filter Min：60，只展示 ≥ 60手的大单
-   >    >       2. Filter Max：默认0，无上限
+   >    >    3. `筛选模式`，用于判断是否大单
    >    >
-   >    >    2. 自动：选“自动”时，下方的 Automatic - Intensity 才有意义，其选项的意义如下
+   >    >       1. `说明`：即手动筛选，选它时，下方的 Filter Min 和 Filter Max 才有意义
    >    >
-   >    >       1. Low：很小的单子也会显示
-   >    >       2. Medio：很小的单子会过滤掉（最常用）
-   >    >       3. Strong：大单和中不溜的单子同时出现时只显示更大的单子
+   >    >          1. Filter Min：60，只展示 ≥ 60手的大单（i哥会在40-60之间调整）
+   >    >          2. Filter Max：默认0，无上限
    >    >
-   >    >       > 选“自动”后，重新计算一下「选项」-「Tool」-「Big Trades Analysis」-选要重新计算的品种，如果还没变化，reload一下图表，或重启App
+   >    >       2. `自动`：选它时，下方的 Automatic - Intensity 才有意义
    >    >
-   >    > 2. 大单的圆球大小：「绘图设置」-「Size」
+   >    >          1. Low：很小的单子也会显示
+   >    >          2. Medio：很小的单子会过滤掉（最常用）
+   >    >          3. Strong：大单和中不溜的单子同时出现时只显示更大的单子
    >    >
-   >    >    1. 标淮差：数值越小，气泡大小差异就更大，对 NQ 先试 1.20 ~ 1.80
-   >    >    2. 最小 Size：对 NQ 先试 10 ~ 14
-   >    >    3. 最大 Size：对 NQ 先试 20 ~ 30
+   >    >          > 选“自动”后，重新计算一下「选项」-「Tool」-「Big Trades Analysis」-选要重新计算的品种，如果还没变化，reload一下图表，或重启App
    >    >
-   >    > 3. 大单聚合：「数据设置」-「输入设置」
+   >    > 2. 「绘图设置」
    >    >
-   >    >    1. Aggregate Trades：会把短时间同价位的小成交聚合成一个更大的成交，气泡会更明显
+   >    >    1. `Deep Trades` 选 `圆形` ，不勾选 `Hollow fill`
+   >    >    2. `Big Trades` 选 `文字` ，勾选 `Hollow fill`
+   >    >    3. `标淮差`：数值越小，气泡大小差异就更大，对 NQ 暂设为1.5（1.20 ~ 1.80）
+   >    >    4. `最小 Size`：对 NQ 暂设为11（10 ~ 14）
+   >    >    5. `最大 Size`：对 NQ 暂设为33（20 ~ 30）
+   >    >    6. `最低不透明度`：`Deep Trades` ：20；`Big Trades` ：70
+   >    >    7. `Maximum opacity`：`Deep Trades` ：40；`Big Trades` ：100
    >    >
-   >    > 4. 大单横线提醒：「ZONES SETTINGS」
+   >    > 3. 「ZONES SETTINGS」
    >    >
-   >    >    1. Biggest only：启用
-   >    >    2. Shadow mode：影线里的大单展示出来，选 All
-   >    >    3. Body mode：实体里的大单标记出来，选 All
+   >    >    1. `Biggest only`：在符合筛选条件的K线内部大单集群的最大大单的右侧画横线
+   >    >    2. `Shadow mode`：影线里的大单展示出来
+   >    >    3. `Body mode`：实体里的大单标记出来
    >    >
    >    >    > All：所有都展示；Trend Only：只展示顺势的；Reverse Only：只展示反转的
+   >    >
+   >    > 4. 「警报设置」（大单声音提醒）
+   >    >
+   >    >    ![image-20260615115320379](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260615115320379.png)
+   >    >
+   >    >    1. 创建报警声音：选项 → 设置 → Add Alert，新建两个 alert：`BT Bid`，`BT Ask`
+   >    >    2. 启用警报：Big Trades → 警报设置如图
    >
    > 6. 单K POC（Bar Poc）
    >
@@ -1364,6 +1455,51 @@ iv模型：清扫 + ifvg
    >    > ![image-20260609152340346](/Users/jiangsai/Library/Application Support/typora-user-images/image-20260609152340346.png)
 
 ---------
+
+## Atas X设置
+
+1. 安装
+
+   > 1. [官网](https://atas.net/atas-x/) 下载 ATASX_Mac 安装器进行在线安装，同时官网注册一个账户用于登录
+   >
+   >    > 账户：jiangsai0502@gmail.com
+   >
+   > 2. 破解
+   >
+   >    > 1. 下载雪花提供的破解工具 ["ATASX_Tool"](https://wwbps.lanzn.com/iiUSO3qcnx9c)，解压到 download 目录（必须这个目录）
+   >    >
+   >    > 2. 打开终端，执行
+   >    >
+   >    >    ```bash
+   >    >    cd "$HOME/Downloads" && sudo chmod +x "ATASX_Tool.app/Contents/MacOS/ATASX_Tool_Mac" && sudo xattr -dr com.apple.quarantine "ATASX_Tool.app" && sudo codesign --force --deep --sign - "ATASX_Tool.app" && sudo touch "ATASX_Tool.app"
+   >    >
+   >    > 3. 打开 "ATASX_Tool"，填入卡密，点击验证并授权，点击解锁Rithmic
+   >    >
+   >    >    ![image-20260611164646233](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611164646233.png)
+   >    >
+   >    > 4. 退出 "ATASX_Tool"，用官网注册的账户登录ATAS X
+
+2. 获取白嫖数据源 Rithmic
+
+   > 1. 注册 Rithmic ：每个账号只能用30天，因此用临时邮箱，[临时邮箱](https://internxt.com/zh/temporary-email)，[注册地址](https://signup.rithmic.com/apps.html#agreement-list&customer=AMPGlobal)
+   >
+   >    ![image-20260611150056158](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611150056158.png)
+   >
+   > 2. ATAS X 连接 Rithmic
+   >
+   >    ![image-20260611174446902](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611174446902.png)
+
+3. 常用功能
+
+   > 1. Big Trades
+   >
+   >    ![image-20260611182030372](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611182030372.png)
+   >
+   > 2. 
+
+
+
+-----
 
 ### 🎯 iPhone 拍摄 Macbook
 
