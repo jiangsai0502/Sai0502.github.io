@@ -1,31 +1,31 @@
+### 6.15 幻焰工作流
+
+* 盘前分析（9:20 - 9:30）
+  * i哥
+    * 大级别关键位：① 昨日 VP（VAH / VAL / POC）② 今天亚欧盘 VP MD / 支阻
+    * 今天的做单方向
+  * Lara
+    * 大级别关键位：① 今天亚欧盘 F5 放量起点K的开盘价 ② 亚欧盘的起点
+* 盘中
+
 ### 6.12 Lara 的5把刀
 
-![256ec27c740800ea7d4545e86a12c247](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/256ec27c740800ea7d4545e86a12c247.png)
+![image-20260615170124656](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260615170124656.png)
+
+![image-20260615170211222](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260615170211222.png)
 
 1. 开盘前30分钟做单方式
-   1. 针对亚欧盘的放量起点的入场方式：清扫放量起点 + 吸收，然后压刺
+   1. 针对亚欧盘的放量起点的入场方式 - 放量K战法（TV 的 VolumeCandle）
+      1. 盘前关键位：亚欧盘波段起点的 F5 放量K的开盘价
+      2. 开盘关键位：美盘开盘的 F5 放量K的开盘价
+      3. 策略：清扫放量起点 + 吸收，然后压刺
    2. 针对亚欧盘的极值点的入场方式：① 清扫亚欧盘极值点 + IV（市价进/挂50%/压刺） ② 清扫 + MSS / CISD（压刺 / 挂颈线）
 2. 开盘30分钟后做单方式
-   1. Fibo61.8策略
+   1. Fibo61.8策略：回调到618，等吸收直接压刺 or 吸收+压刺
    2. 波段回撤清扫内部流动性策略
 3. 亚欧盘剥头皮策略（高成交量时段）
    1. 亚盘 7 - 9 am
    2. 欧盘16 - 18 pm
-
-
-
-
-
-1. 回调到618，等吸收直接压刺、吸收+压刺
-2. 扫掉亚欧高低点，出IV，IV要等50%挂单
-3. 放量K战法（tradingview 的 VolumeCandle 指标）
-   1. 盘前关键位：亚欧盘波段起点的 F5 放量K的开盘价
-   2. 开盘关键位：美盘开盘的 F5 放量K的开盘价
-   3. 策略：观察 F1 
-
-
-
-
 
 ### 06.11 基于大单的剥头皮策略（白天NQ）
 
@@ -64,6 +64,24 @@
 >    >   * Big Trades - Filter Mode: Automatic
 >    >     - Intensity: Medium（用来看真正异常的大资金痕迹）
 >    > * 实操：价格打到关键位，而自动模式没显示，但怀疑应该有大单，可立刻切到 Manual 模板
+>
+> 5. 监听 Big Trades 的报警音，声音一响，就给 Telegram 发消息
+>
+>    1. 创建机器人
+>
+>       > 1. 找到 Bot [BotFather](https://telegram.me/BotFather)，创建我的bot，拿到 BOT_TOKEN
+>       >
+>       >    ![image-20260615172626067](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260615172626067.png)
+>       >
+>       > 2. 访问我的bot，给它发句 test，然后在浏览器打开下述链接，获取 `CHAT_ID`
+>       >
+>       >    ```bash
+>       >    https://api.telegram.org/bot我的BOT_TOKEN/getUpdates
+>       >    ```
+>       >
+>       >    ![image-20260615172935718](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260615172935718.png)
+>
+>    2. Windows 后台跑 脚本
 
 -----
 
