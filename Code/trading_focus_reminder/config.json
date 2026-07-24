@@ -1,0 +1,9 @@
+{
+  "times": ["21:25"],
+  "quotes_file": "quotes.txt",
+  "message": "并非每天都有绝佳的机会，没有就空仓一天",
+  "title": "交易前提醒",
+  "timezone": "Asia/Shanghai",
+  "allow_weekends": true,
+  "snooze_seconds_after_success": 60
+}

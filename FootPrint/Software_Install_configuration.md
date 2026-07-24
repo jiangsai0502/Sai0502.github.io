@@ -61,9 +61,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                               
+>                                  
 >    open ~/.zshrc
->                               
+>                                  
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -193,14 +193,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                                         
+>                                             
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                                         
+>                                             
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
@@ -467,10 +467,14 @@ VPN开启后Chrome可翻墙，终端不行
 > * 去除环境音
 >
 >   ![image-20250315230635808](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20250315230635808.png)
->   
+>
 > * 画质提升
 >
 >   ![image-20250319003024248](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20250319003024248.png)
+>   
+> * 外接屏幕调整尺寸
+>
+>   ![image-20260706225358439](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260706225358439.png)
 
 ##### PDF Expert 禁止更新
 
