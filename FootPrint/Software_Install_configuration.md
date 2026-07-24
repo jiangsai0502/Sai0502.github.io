@@ -13,13 +13,17 @@
 > killall ControlCenter
 > ```
 
-**触摸板**
+##### 触摸板
 
 > 1. 禁用双指右边缘左滑调佣通知中心：触摸板-更多手势-通知中心（关闭）
 > 2. 启用三指拖移：辅助功能 - 指针控制 - 触控板选项 - 拖移样式 - 三指拖移
 > 3. 启用连接鼠标时禁用触摸板：辅助功能 - 指针控制 - 使用鼠标或无线触控板时忽略内置触控板
 
-**鼠标滚轮缩放**
+##### 顶部状态栏设置
+
+> ![image-20260725003331865](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607250033920.png)
+
+##### 鼠标滚轮缩放
 
 > 安住control，滚轮缩放
 >
@@ -61,9 +65,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                  
+>                                     
 >    open ~/.zshrc
->                                  
+>                                     
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -193,14 +197,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                                             
+>                                                 
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                                             
+>                                                 
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
@@ -319,13 +323,69 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >    **Inside Files**：最常用，`in + 关键字`查找包含查询字的文件
 
-##### 安装easydict
+##### GitHub + PicGo + Typora搭建图床
 
-> brew install --cask easydict
+> 1. 创建GitHub图床
+>
+>    > 创建的token只展示一次，要好好保存
+>
+>    ![image-20241223100207621](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20241223100207621.png)
+>
+> 2. 配置PicGo
+>
+>    > * 设定仓库名的时候，是按照“账户名/仓库名”的格式填写
+>    >
+>    >   * 如 jiangsai0502/PicBedRepo
+>    >
+>    > * 分支名统一填写“master”
+>    >
+>    > * 将之前的Token黏贴在这里：`74d803fcee14a9c36a8f1f387e5085446c2489f1`
+>    >
+>    > * 存储路径可以写成img/，这样会在repository下创建一个“img”文件夹
+>    >
+>    > * 自定义域名的作用是，在上传图片后成功后，PicGo会将“自定义域名+上传的图片名”生成的访问链接，放到剪切板上https://raw.githubusercontent.com/账户名/仓库名/分支名，自定义域名需要按照这样去填写
+>    >
+>    >   * 如https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master
+>    >
+>    > * PicGo报错
+>    >
+>    >   ![image-20241107173202457](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20241107173202457.png)
+>
+> 3. Typora自动上传
+>
+>    > Typora到语言必须调成中文，上传服务才能看到PicGo.app
+>
+>    ![image-20240504172744911](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202405041727992.png)
 
-##### 安装picgo
+1. Typora设置
 
-> brew install --cask picgo
+   > 1. 展示设置：增加行宽
+   >
+   >    > ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202312161642913.png)
+   >
+   > 2. 打印设置
+   >
+   >    1. 页边距
+   >
+   >       > ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202310261112999.png)
+   >
+   >    2. [行距](https://www.twblogs.net/a/5db288f8bd9eee310d9fd66c/?lang=zh-cn)
+   >
+   >       > 1. 微调`body`中的`line-height`参数
+   >       > 2. 关闭文件重新打开，修改即可生效
+   >       >
+   >       > ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202310261109296.png)
+
+##### Mac Mouse Fix
+
+>![image-20260724222539542](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607242225621.png)
+>
+>1. 鼠标缩放图片：Option + 鼠标滚轮（若缩放过快，则在mos中将该app设为例外）
+>2. 鼠标左右滚动图片：Shift + 鼠标滚轮
+
+##### Longshot
+
+> ![image-20260724223844435](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607242240532.png)
 
 ##### sublime配置
 
@@ -427,32 +487,30 @@ VPN开启后Chrome可翻墙，终端不行
 
 ##### 罗技鼠标Logitech G HUB
 
-> 1. 关闭板载内存模式
+> ![image-20260724232614638](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607242326698.png)
 >
->    > 1. DPI
->    >
->    >    > 灵敏度 - 默认设置 - 2400
->    >
->    > 2. 侧键快捷键
->    >
->    >    > 1. 分配 -宏 - 新建宏 - 不重复 - 立即开始 - 记录按键 - 停止录制
->    >    >
->    >    >    > 1. 全屏左滑宏：control ⌃ + ArrowLift ←
->    >    >    > 2. 全屏右滑宏：control ⌃ + ArrowRight →
->    >    >    > 3. 窗口管理 宏：control ⌃ + ArrowUp ↑
->    >    >
->    >    > 2. 将新建的「全屏左滑宏」拖到侧上键；将新建的「全屏右滑宏」拖到侧下键
+> 1. 关闭板载内存
 >
-> 2. 开启板载内存模式
+> 2. DPI：第1个启用：灵敏度 - 2400；剩余都关闭
 >
->    > 1. 设置 - 板载内存模式「关闭」->「开启」
->    >
->    >    > 点击 「放入1 默认」 - 选择「桌面 默认」 - 等待保存完成
-
-##### Mac技巧
-
-> 1. 鼠标缩放图片：Option + 鼠标滚轮（若缩放过快，则在mos中将该app设为例外）
-> 2. 鼠标左右滚动图片：Shift + 鼠标滚轮
+> 3. 侧键快捷键
+>    1. 分配 -宏 - 新建宏 - 不重复 - 立即开始 - 记录按键 - 停止录制
+>       1. 全屏左滑宏：control ⌃ + ArrowLift ←
+>
+>       2. 全屏右滑宏：control ⌃ + ArrowRight →
+>       3. 窗口管理 宏：control ⌃ + ArrowUp ↑
+>
+>    2. 将新建的「全屏左滑宏」拖到侧上键；将新建的「全屏右滑宏」拖到侧下键
+>
+> 4. 保存设置
+>    1. 开启板载内存模式：「关闭」->「开启」
+>
+>    2. 保存到「桌面 默认」 - 等待保存完成
+>
+>    3. 关闭板载内存模式：「开启」->「关闭」
+>
+> 5. 开启板载内存
+>
 
 ##### OBS
 
