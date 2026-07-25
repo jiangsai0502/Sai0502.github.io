@@ -1745,13 +1745,28 @@
 
    > 1. 注册 Rithmic ：每个账号只能用30天，因此用临时邮箱，[临时邮箱](https://internxt.com/zh/temporary-email)，[注册地址](https://signup.rithmic.com/apps.html#agreement-list&customer=AMPGlobal)
    >
+   >    > 周末不能注册，会一直报错
+   >
    >    ![image-20260611150056158](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611150056158.png)
    >
    > 2. ATAS X 连接 Rithmic
    >
    >    ![image-20260611174446902](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611174446902.png)
 
-3. 常用功能
+3. 重装系统，把原系统里 Altas 模板转移到新系统
+
+   > ```bash
+   > 原系统设置目录：'/Volumes/.timemachine/3048B0AE-870D-4EC7-B11F-E8E7A5A8A7FF/2026-07-24-085313.backup/2026-07-24-085313.backup/Macintosh HD - Data/Users/jiangsai/Library/Application Support/ATAS'
+   > 
+   > 新系统设置目录：'/Users/sai/Library/Application Support/ATAS'
+   > ```
+   >
+   > 1. TimeMachine - 备份时间 - Macintosh HD - Data/Users/jiangsai
+   > 2. Finder 窗口里直接按：Command + Shift + .（句号键），显示所有隐藏文件，再按一次隐藏
+   > 3. 修改新系统设置目录名为：MacOSATAS
+   > 4. 直接将原系统设置目录拖入 Application Support 目录，不要用合并/替换，会出问题
+
+4. 常用功能
 
    > 1. Big Trades
    >

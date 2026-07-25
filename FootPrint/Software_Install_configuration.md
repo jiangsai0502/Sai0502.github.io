@@ -102,7 +102,7 @@ VPN开启后Chrome可翻墙，终端不行
 >
 > 2. 官网下载安装go2shell
 >
->    ![image-20241222085630120](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20241222085630120.png)
+>    ![image-20260725012032392](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607250120444.png)
 >
 > 3. 设为默认：iTerm2 -> Make ITerm2 Default Term
 >
@@ -123,18 +123,21 @@ VPN开启后Chrome可翻墙，终端不行
 > 5. 安装Oh my zsh [参考](https://segmentfault.com/a/1190000041138667?utm_source=sf-similar-article)
 >
 >    ```bash
->    brew install wget;
->    export REMOTE=https://gitee.com/imirror/ohmyzsh.git;
->    sh -c "$(wget -O- https://cdn.jsdelivr.net/gh/ohmyzsh/ohmyzsh/tools/install.sh)";
->
+>    # 1. 设置 oh-my-zsh 从 Gitee 镜像安装
+>    export REMOTE=https://gitee.com/imirror/ohmyzsh.git
+>    
+>    # 2. 用 curl 下载并执行安装脚本（替代 wget）
+>    sh -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/ohmyzsh/ohmyzsh/tools/install.sh)"
+>    
+>    # 3. 打开 .zshrc 手动编辑
 >    open ~/.zshrc
->
+>    
 >    # 在.zshrc文件中搜索 source $ZSH/oh-my-zsh.sh，在本句之前加一句
 >    ZSH_DISABLE_COMPFIX="true"
->
+>    
 >    # 禁用oh-my-zsh自动更新：找到 DISABLE_AUTO_UPDATE 一行，将行首的注释'#'去掉
 >    DISABLE_AUTO_UPDATE="true"
->
+>    
 >    source ~/.zshrc
 >    ```
 >
@@ -173,11 +176,11 @@ VPN开启后Chrome可翻墙，终端不行
 >     brew install zsh-syntax-highlighting
 >     输出To activate the syntax highlighting, add the following at the end of your .zshrc:
 >       source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
->     
+>
 >     open ~/.zshrc
->     
+>
 >     最后插入一行：source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
->     
+>
 >     source ~/.zshrc
 >     ```
 >
@@ -188,7 +191,7 @@ VPN开启后Chrome可翻墙，终端不行
 >     open ~/.oh-my-zsh/plugins
 >     # 将 zsh-autosuggestions 拖入目录 ~/.oh-my-zsh/plugins
 >     open ~/.zshrc
->     
+>
 >     搜索'plugins'，修改为 plugins=(zsh-autosuggestions)
 >     source ~/.zshrc
 >     ```
@@ -197,14 +200,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                                                 
+>     
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                                                 
+>     
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
