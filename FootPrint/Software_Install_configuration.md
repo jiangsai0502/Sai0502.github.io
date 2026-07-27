@@ -65,9 +65,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                     
+>                                              
 >    open ~/.zshrc
->                                     
+>                                              
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -200,14 +200,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->     
+>                 
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->     
+>                 
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
@@ -224,14 +224,24 @@ VPN开启后Chrome可翻墙，终端不行
 > nano ~/.config/mpv/input.conf
 > 
 > # 复制到该文件
-> AXIS_UP add volume -2
-> AXIS_DOWN add volume 2
-> AXIS_LEFT seek -2 exact
-> AXIS_RIGHT seek 2 exact
+> # ----------------------------------------
+> # 1. 键盘方向键（按键直觉：左退右进，上加下减）
+> # ----------------------------------------
 > LEFT seek -2 exact
 > RIGHT seek 2 exact
 > UP add volume 2
 > DOWN add volume -2
+> 
+> # ----------------------------------------
+> # 2. 触控板 / 鼠标手势（对齐 Mac 自然滚动）
+> # ----------------------------------------
+> # 双指左右滑动
+> AXIS_LEFT seek 2 exact
+> AXIS_RIGHT seek -2 exact
+> 
+> # 双指上下滑动调节音量（调换正负号以对齐自然滚动）
+> WHEEL_UP add volume -2
+> WHEEL_DOWN add volume 2
 > 
 > Ctrl + O 保存，Enter 键确认保存，Ctrl + X 退出 nano 编辑器
 > ```
@@ -388,7 +398,7 @@ VPN开启后Chrome可翻墙，终端不行
 
 ##### Longshot
 
-> ![image-20260724223844435](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607242240532.png)
+> ![image-20260726183433793](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607261834855.png)
 
 ##### sublime配置
 
@@ -574,3 +584,42 @@ VPN开启后Chrome可翻墙，终端不行
 
 ##### VPS 搭建 VPN [教程](https://www.youtube.com/watch?v=MuWTmEiNe1g)
 
+##### MacOS 连接 iPhone热点抽风断开的自动重连脚本
+
+> ```
+> 启动程序
+> ↓
+> 单例检查（排他运行）
+> ├─ 已有进程运行 ──> 提示并退出
+> └─ 无运行进程 ───> 初始化日志与单例锁，进入主循环
+>         ↓
+> 【循环监控】每秒并发探测多网站，检查整体联网状态
+> ├─ 网络正常 ───> 重置故障计数，保持静默监控
+> └─ 连续 2 次断网 ──> 确认断网，触发故障处理机制
+>         ↓
+> 【故障处理】检查当前默认出口
+> ├─ 为 iPhone USB ──> 尝试禁用一次该 USB 服务（为 Wi-Fi 让路）
+> └─ 非 USB / 处理完毕 ──> 发起 Wi-Fi 恢复（最多尝试 3 次）
+>         ↓
+> 【Wi-Fi 重连与验证】（每次连接后验证 IP/路由/联网）
+> ├─ 任意阶段恢复联网 ──> 重置状态，返回【循环监控】
+> └─ 尝试 3 次均失败 ──> 触发人工干预流程
+>         ↓
+> 【人工干预】
+> └─ 弹出系统通知（仅一次），停止自动重连
+> └─ 持续后台检测 ──> 一旦联网成功 ──> 清除状态，恢复【循环监控】
+> ```
+>
+> **功能**
+>
+> - 通过多目标并发探测，每秒监控系统联网状态
+> - 确认**连续两次断网**后，会自动停用 iPhone USB 共享网络，并尝试**连接指定 Wi-Fi**（最多 3 次）。
+> - 自动连接 3 次都失败后，弹窗提醒人工介入
+> - 手动连接成功后再次重启监控
+> - 所有操作记录到桌面日志文件`macos-network-watchdog.log`
+>
+> **使用方法**：macos-network-watchdog.command`右键-制作替身（快捷方式）-挪到桌面
+>
+> **注意**：Wi-Fi 名称必须写对，大小写都不能错
+>
+> 

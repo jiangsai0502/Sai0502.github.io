@@ -1753,24 +1753,36 @@
    >
    >    ![image-20260611174446902](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611174446902.png)
 
-3. 重装系统，把原系统里 Altas 模板转移到新系统
+3. 导入 i哥模板 `veilflame/i的工具包/nq.ws`
 
-   > ```bash
-   > 原系统设置目录：'/Volumes/.timemachine/3048B0AE-870D-4EC7-B11F-E8E7A5A8A7FF/2026-07-24-085313.backup/2026-07-24-085313.backup/Macintosh HD - Data/Users/jiangsai/Library/Application Support/ATAS'
-   > 
-   > 新系统设置目录：'/Users/sai/Library/Application Support/ATAS'
-   > ```
-   >
-   > 1. TimeMachine - 备份时间 - Macintosh HD - Data/Users/jiangsai
-   > 2. Finder 窗口里直接按：Command + Shift + .（句号键），显示所有隐藏文件，再按一次隐藏
-   > 3. 修改新系统设置目录名为：MacOSATAS
-   > 4. 直接将原系统设置目录拖入 Application Support 目录，不要用合并/替换，会出问题
+   1. 连接 Rithmic 数据源：必须连数据，必须连 Rithmic 数据
+   2. 加载 i 哥模板：顶部栏「工作区」 → 加载 → 找到`i的工具包/nq.ws` → 加载的是多图布局+图表模板
 
-4. 常用功能
+4. 导出多图模板
+
+   1. 顶部栏「工作区」 → 工作区管理 → 导出： `.aws` 
+
+5. 导出单图模板
+
+   1. 图标右键 → 设置 → 模板tab → 底部栏「使用当前设置保存模板」 → ✅图表设置✅绘制对象✅指标✅时间框架 → 保存到列表 → 找到该模板的右侧3个点 → 导出
+
+6. 常用功能
 
    > 1. Big Trades
    >
    >    ![image-20260611182030372](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260611182030372.png)
+   >
+   > 2. 任意区域 VP：左侧指标列表 Volume Profile & TPO
+   >
+   >    ![image-20260727152856419](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607271528482.png)
+   >
+   > 3. 美盘 VP：顶部指标集 Volume Profile & TPO
+   >
+   >    ![image-20260727110753191](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607271107261.png)
+   >
+   > 4. 处理一下名称
+   >
+   >    ![longshot20260727111627](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607271116961.png)
 
 #  北极星账号打造
 
