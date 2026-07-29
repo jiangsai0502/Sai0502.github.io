@@ -151,6 +151,36 @@ await page.waitForTimeout(100);
 const savedLoss = await page.evaluate(() => window.__stored['tradovateMonitorSettings:default'].dailyLossLimit);
 assert(savedLoss === 250, 'daily loss should auto-save on blur', { savedLoss });
 
+await page.click('#dailyProfitTarget');
+await page.keyboard.press('Meta+A');
+await page.keyboard.type('375');
+await page.evaluate(async () => {
+  const runtimeKey = 'tradovateRuntimeState:default';
+  await chrome.storage.local.set({
+    [runtimeKey]: {
+      ...(window.__stored[runtimeKey] || {}),
+      lastPnl: 18.75,
+      nextScanAt: Date.now() + 45000
+    }
+  });
+});
+await page.waitForTimeout(150);
+const liveRefreshDuringEdit = await page.evaluate(() => ({
+  inputValue: document.getElementById('dailyProfitTarget').value,
+  activeId: document.activeElement?.id || '',
+  renderedPnl: document.querySelector('.pnl-card strong')?.textContent || ''
+}));
+assert(
+  liveRefreshDuringEdit.inputValue === '375' && liveRefreshDuringEdit.activeId === 'dailyProfitTarget',
+  'runtime refresh should not overwrite the setting currently being edited',
+  { liveRefreshDuringEdit }
+);
+assert(liveRefreshDuringEdit.renderedPnl === '18.75', 'runtime refresh should still update live PnL', { liveRefreshDuringEdit });
+await page.locator('#dailyProfitTarget').blur();
+await page.waitForTimeout(100);
+const savedProfit = await page.evaluate(() => window.__stored['tradovateMonitorSettings:default'].dailyProfitTarget);
+assert(savedProfit === 375, 'edited setting should save normally after runtime refresh', { savedProfit });
+
 await page.click('#scanIntervalSeconds');
 await page.keyboard.press('Meta+A');
 await page.keyboard.type('abc12x');
@@ -259,6 +289,8 @@ await browser.close();
 console.log(JSON.stringify({
   initialLayout,
   savedLoss,
+  liveRefreshDuringEdit,
+  savedProfit,
   sanitizedScan,
   savedDuration,
   lockedState,

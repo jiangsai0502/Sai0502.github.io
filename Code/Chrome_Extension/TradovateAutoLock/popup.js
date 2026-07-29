@@ -61,6 +61,7 @@ let settingsLockedUntil = null;
 let activeAccountId = 'default';
 let countdownTimer = null;
 let scheduledLoadTimer = null;
+let scheduledRuntimeRefreshTimer = null;
 let lastDiagnosticBundle = null;
 let lastDiagnosticMarkdown = '';
 let scheduledLockAutoEnableMigratedAt = null;
@@ -786,6 +787,16 @@ function scheduleLoad(delay = 0) {
   }, delay);
 }
 
+function scheduleRuntimeRefresh(delay = 0) {
+  if (scheduledRuntimeRefreshTimer) window.clearTimeout(scheduledRuntimeRefreshTimer);
+  scheduledRuntimeRefreshTimer = window.setTimeout(() => {
+    scheduledRuntimeRefreshTimer = null;
+    refreshRuntimeStatus().catch(err => {
+      console.warn('[TradovateAutoLock popup] runtime refresh failed:', err);
+    });
+  }, delay);
+}
+
 function isSettingsLocked() {
   return Number.isFinite(Number(settingsLockedUntil)) && Number(settingsLockedUntil) > currentTimestamp();
 }
@@ -853,6 +864,39 @@ function applySettingsLockState() {
   lockSettingsButton.textContent = locked ? '已锁定' : '锁定设置';
 }
 
+function hydrateSettingValue(id, value) {
+  const input = $(id);
+  if (document.activeElement === input) return;
+  input.value = String(value);
+}
+
+function hydrateSettingChecked(id, checked) {
+  const input = $(id);
+  if (document.activeElement === input) return;
+  input.checked = Boolean(checked);
+}
+
+async function refreshRuntimeStatus() {
+  if (isBlockedPage) return;
+  const runtimeKey = runtimeStateStorageKey();
+  const data = await chrome.storage.local.get({
+    [runtimeKey]: null,
+    [WS_CAPTURE_STORAGE_KEY]: null
+  });
+  const runtimeState = data[runtimeKey] && typeof data[runtimeKey] === 'object'
+    ? data[runtimeKey]
+    : {};
+  const websocketCapture = data[WS_CAPTURE_STORAGE_KEY] && typeof data[WS_CAPTURE_STORAGE_KEY] === 'object'
+    ? data[WS_CAPTURE_STORAGE_KEY]
+    : null;
+  const scopedTradeStats =
+    selectTradeStatsForAccount(websocketCapture, activeAccountId) ||
+    runtimeState.lastTradeStats;
+  renderStatus(runtimeState, scopedTradeStats);
+  setDataLoading(!hasDirectPnlData(runtimeState));
+  applyPopupViewportHeight();
+}
+
 async function load() {
   appTitleEl.textContent = POPUP_BUILD_LABEL;
   await updatePageWarning();
@@ -895,27 +939,27 @@ async function load() {
     }
   }
   await normalizeSettingsLock(data[settingsKey]);
-  $('dailyLossLimit').value = String(
+  hydrateSettingValue('dailyLossLimit',
     Number(scopedSettings && scopedSettings.dailyLossLimit) > 0
       ? Number(scopedSettings.dailyLossLimit)
       : (data.dailyLossLimit || DEFAULTS.dailyLossLimit)
   );
-  $('dailyProfitTarget').value = String(
+  hydrateSettingValue('dailyProfitTarget',
     Number(scopedSettings && scopedSettings.dailyProfitTarget) > 0
       ? Number(scopedSettings.dailyProfitTarget)
       : (data.dailyProfitTarget || DEFAULTS.dailyProfitTarget)
   );
-  $('scanIntervalSeconds').value = String(
+  hydrateSettingValue('scanIntervalSeconds',
     Number(scopedSettings && scopedSettings.scanIntervalSeconds) > 0
       ? Number(scopedSettings.scanIntervalSeconds)
       : (data.scanIntervalSeconds || DEFAULTS.scanIntervalSeconds)
   );
-  $('lockDuration').value = (scopedSettings && scopedSettings.lockDuration) || data.lockDuration || 'end_of_day';
+  hydrateSettingValue('lockDuration', (scopedSettings && scopedSettings.lockDuration) || data.lockDuration || 'end_of_day');
   const storedTradeCountLockEnabled = scopedSettings && typeof scopedSettings.tradeCountLockEnabled === 'boolean'
     ? scopedSettings.tradeCountLockEnabled
     : data.tradeCountLockEnabled;
-  $('tradeCountLockEnabled').checked = Boolean(storedTradeCountLockEnabled);
-  $('dailyEntryLimit').value = String(
+  hydrateSettingChecked('tradeCountLockEnabled', storedTradeCountLockEnabled);
+  hydrateSettingValue('dailyEntryLimit',
     Number(scopedSettings && scopedSettings.dailyEntryLimit) > 0
       ? Number(scopedSettings.dailyEntryLimit)
       : (data.dailyEntryLimit || DEFAULTS.dailyEntryLimit)
@@ -938,9 +982,9 @@ async function load() {
   if (shouldAutoEnableScheduledLock) {
     scheduledLockAutoEnableMigratedAt = new Date().toISOString();
   }
-  $('scheduledLockEnabled').checked = Boolean(storedScheduledEnabled || shouldAutoEnableScheduledLock);
-  $('scheduledLockTime').value = scheduledTime;
-  $('scheduledLockMessage').value = scheduledMessage;
+  hydrateSettingChecked('scheduledLockEnabled', storedScheduledEnabled || shouldAutoEnableScheduledLock);
+  hydrateSettingValue('scheduledLockTime', scheduledTime);
+  hydrateSettingValue('scheduledLockMessage', scheduledMessage);
   applySettingsLockState();
   if (shouldAutoEnableScheduledLock && !isSettingsLocked() && !isBlockedPage) {
     await saveSettings({ silent: true });
@@ -1195,16 +1239,19 @@ window.addEventListener('resize', applyPopupViewportHeight);
 if (chrome.storage && chrome.storage.onChanged && typeof chrome.storage.onChanged.addListener === 'function') {
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== 'local' || !changes) return;
-    const relevantKeys = new Set([
-      'debugLog',
-      WS_CAPTURE_STORAGE_KEY,
-      settingsLockStorageKey(),
-      monitorSettingsStorageKey(),
-      runtimeStateStorageKey()
-    ]);
     const changedKeys = Object.keys(changes);
-    if (changedKeys.some(key => relevantKeys.has(key))) {
+    const settingsChanged = changedKeys.some(key =>
+      key === settingsLockStorageKey() || key === monitorSettingsStorageKey()
+    );
+    if (settingsChanged) {
       scheduleLoad(50);
+      return;
+    }
+    const runtimeChanged = changedKeys.some(key =>
+      key === WS_CAPTURE_STORAGE_KEY || key === runtimeStateStorageKey()
+    );
+    if (runtimeChanged) {
+      scheduleRuntimeRefresh(50);
     }
   });
 }

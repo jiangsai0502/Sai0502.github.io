@@ -65,9 +65,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                              
+>                                                 
 >    open ~/.zshrc
->                                              
+>                                                 
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -200,14 +200,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                 
+>                     
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                 
+>                     
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
@@ -275,9 +275,18 @@ VPN开启后Chrome可翻墙，终端不行
 >
 > 3. 将mpv multiple拖入应用程序，修改视频文件的默认打开方式
 
-##### 安装yt-dlp
+##### yt-dlp
 
 > `brew install yt-dlp`
+>
+> ```bash
+> # 安装 yt-dlp
+> python3 -m pip install yt-dlp
+> 
+> # 把路径加到 PATH
+> echo 'export PATH="$HOME/Library/Python/3.9/bin:$PATH"' >> ~/.zshrc
+> source ~/.zshrc
+> ```
 >
 > > 直接下载往往被限制分辨率，增加参数可模拟浏览器
 >
