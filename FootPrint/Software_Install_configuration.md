@@ -2,16 +2,7 @@
 
 > * 文字处理：office、sublime、Typora、Easydict、Paste、PDF expert、XMind
 > * 效率工具：Keyboard Maestro、go2shell（官网下载）、snipaste、rename、PicGo、Easydict、flow、downie
-> * 系统工具：App Cleaner、Mos、itsycal、Alfred 5、iTerm、Snipaste、WgetCloud、GitHub Desktop、Geph、istat menus、VS Code、The Unarchiver、
-> * 学习工具：Anki、
-
-##### Itsycal安装后隐藏系统日期
-
-> ```bash
-> defaults write com.apple.menuextra.clock DateFormat -string "HH:mm"
-> killall SystemUIServer
-> killall ControlCenter
-> ```
+> * 系统工具：App Cleaner、Mos、itsycal、Alfred 5、iTerm、WgetCloud、GitHub Desktop、Geph、istat menus、VS Code、The Unarchiver、
 
 ##### 触摸板
 
@@ -65,9 +56,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                                 
+>                                                       
 >    open ~/.zshrc
->                                                 
+>                                                       
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -200,18 +191,18 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                     
+>                             
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                     
+>                             
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
-##### 安装mpv
+##### mpv
 
 > ```bash
 > brew install mpv --cask
@@ -277,10 +268,21 @@ VPN开启后Chrome可翻墙，终端不行
 
 ##### yt-dlp
 
-> `brew install yt-dlp`
+> **先安装FFmpeg**
+>
+> * [下载](https://evermeet.cx/ffmpeg/)：右侧版本 - Download as ZIP，解压得到可执行文件 ffmpeg
+>
+>   ```bash
+>   sudo mkdir -p /usr/local/bin
+>   sudo mv ~/Downloads/ffmpeg /usr/local/bin/
+>   sudo chmod +x /usr/local/bin/ffmpeg
+>   sudo xattr -dr com.apple.quarantine /usr/local/bin/ffmpeg
+>   ffmpeg -version
+>   ```
+>
+> **再安装 yt-dlp**
 >
 > ```bash
-> # 安装 yt-dlp
 > python3 -m pip install yt-dlp
 > 
 > # 把路径加到 PATH
@@ -322,6 +324,63 @@ VPN开启后Chrome可翻墙，终端不行
 >   > * 转mp4：`yt-dlp -f 230 --cookies-from-browser chrome --remux-video mp4 URL`
 >   >
 >   > ![img](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202308271236418.png)
+
+##### 禁用自动更新
+
+> ```bash
+> backup="$HOME/Desktop/iStat-All-Cache-Backup-$(date '+%Y%m%d-%H%M%S')"
+> mkdir -p "$backup"
+> 
+> # 暂时停止菜单栏和后台助手，避免清理过程中自动重建缓存
+> launchctl bootout "gui/$UID" \
+> "$HOME/Library/LaunchAgents/com.bjango.istatmenus.status.plist" 2>/dev/null
+> 
+> launchctl bootout "gui/$UID" \
+> "$HOME/Library/LaunchAgents/com.bjango.istatmenus.agent.plist" 2>/dev/null
+> 
+> # 结束设置程序、更新器及其网页子进程
+> killall "iStat Menus" 2>/dev/null
+> killall "iStat Menus Updater" 2>/dev/null
+> pkill -f 'com\.bjango\.istatmenus\.updater|updates\.istatmenus\.app' 2>/dev/null
+> 
+> sleep 1
+> 
+> # 隔离主程序、菜单栏、后台代理和更新器的全部网络缓存
+> for area in Caches WebKit HTTPStorages; do
+>     for bundle in \
+>         com.bjango.istatmenus \
+>         com.bjango.istatmenus.status \
+>         com.bjango.istatmenus.agent \
+>         com.bjango.istatmenus.updater
+>     do
+>         source_path="$HOME/Library/$area/$bundle"
+> 
+>         if [[ -e "$source_path" ]]; then
+>             mv "$source_path" "$backup/${area}-${bundle}"
+>         fi
+>     done
+> done
+> 
+> # 重新加载后台助手和菜单栏
+> launchctl bootstrap "gui/$UID" \
+> "$HOME/Library/LaunchAgents/com.bjango.istatmenus.agent.plist"
+> 
+> launchctl bootstrap "gui/$UID" \
+> "$HOME/Library/LaunchAgents/com.bjango.istatmenus.status.plist"
+> 
+> launchctl kickstart -k "gui/$UID/com.bjango.istatmenus.agent"
+> launchctl kickstart -k "gui/$UID/com.bjango.istatmenus.status"
+> 
+> echo "全部iStat网络缓存已隔离到：$backup"
+> ```
+
+##### Itsycal安装后隐藏系统日期
+
+> ```bash
+> defaults write com.apple.menuextra.clock DateFormat -string "HH:mm"
+> killall SystemUIServer
+> killall ControlCenter
+> ```
 
 ##### Alfred配置
 

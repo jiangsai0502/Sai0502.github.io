@@ -90,7 +90,7 @@ const scenarios = [
     expectGuardSource: 'visible position element'
   },
   {
-    name: 'stored locked state does not block retry when page is not locked',
+    name: 'active account-scoped lock state blocks unsafe retry when page button stays manual',
     tradeStats: {
       ...baseTradeStats,
       tradeCountToday: 6,
@@ -107,7 +107,8 @@ const scenarios = [
       lockedAt: Date.now() - 60000,
       lockExpiresAt: Date.now() + 15 * 60 * 1000
     },
-    expectLocked: true,
+    expectLocked: false,
+    expectedSkip: 'trade count lock already active',
     expectGuardSource: 'visible position element'
   },
   {
@@ -241,6 +242,9 @@ for (const scenario of scenarios) {
   } else {
     assert(result.scan.ok && !result.scan.locked, `${scenario.name}: should not lock`, result);
     assert(!result.state.modalOpen && !result.state.confirmOpen, `${scenario.name}: modal should stay closed`, result);
+    if (scenario.expectedSkip) {
+      assert(result.scan.skipped === scenario.expectedSkip, `${scenario.name}: skip reason mismatch`, result);
+    }
   }
   const guard = result.state.autoState?.tradePositionGuard || result.state.runtimeState?.lastTradePositionGuard || {};
   assert(guard.source === scenario.expectGuardSource, `${scenario.name}: guard source mismatch`, { guard, result });

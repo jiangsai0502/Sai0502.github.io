@@ -2564,7 +2564,7 @@ function rowTextNearY(root, centerY, tolerance = 44) {
 
 function accountLockRows(root) {
   const seen = new Set();
-  return allVisibleElements(root)
+  const rows = allVisibleElements(root)
     .map(el => {
       const shortText = ownOrShortText(el);
       const accountId = shortText ? matchTradovateAccountId(shortText) : '';
@@ -2572,18 +2572,43 @@ function accountLockRows(root) {
       seen.add(accountId);
       const rect = el.getBoundingClientRect();
       const centerY = rect.top + rect.height / 2;
-      const rowText = rowTextNearY(root, centerY);
       return {
         accountId,
         accountEl: el,
         rect,
-        centerY,
-        rowText,
-        locked: /已锁定|Locked/i.test(rowText) && !/未锁定|Unlocked/i.test(rowText)
+        centerY
       };
     })
     .filter(Boolean)
     .sort((a, b) => a.rect.top - b.rect.top);
+
+  return rows.map((row, index) => {
+    const previous = rows[index - 1];
+    const next = rows[index + 1];
+    const fallbackHalfHeight = Math.max(24, row.rect.height * 1.5);
+    const rowTop = previous
+      ? (previous.centerY + row.centerY) / 2
+      : row.centerY - (next ? (next.centerY - row.centerY) / 2 : fallbackHalfHeight);
+    const rowBottom = next
+      ? (row.centerY + next.centerY) / 2
+      : row.centerY + (previous ? (row.centerY - previous.centerY) / 2 : fallbackHalfHeight);
+    const rowText = allVisibleElements(root)
+      .filter(el => {
+        const rect = el.getBoundingClientRect();
+        const centerY = rect.top + rect.height / 2;
+        return centerY >= rowTop && centerY < rowBottom;
+      })
+      .map(ownOrShortText)
+      .filter(Boolean)
+      .join(' ');
+    return {
+      ...row,
+      rowTop,
+      rowBottom,
+      rowText,
+      locked: /已锁定|Locked/i.test(rowText) && !/未锁定|Unlocked/i.test(rowText)
+    };
+  });
 }
 
 function lockDurationSelectCandidates(root) {
@@ -2623,6 +2648,10 @@ function findLockDurationSelectForAccount(root, preferredAccountId = '') {
   if (!targetRow) return null;
   const selects = lockDurationSelectCandidates(root);
   const scored = selects
+    .filter(item => {
+      const centerY = item.rect.top + item.rect.height / 2;
+      return centerY >= targetRow.rowTop && centerY < targetRow.rowBottom;
+    })
     .map(item => ({
       ...item,
       accountId: targetRow.accountId,
@@ -2883,6 +2912,17 @@ async function executeNewAccountLockoutAfterManualOpen(cfg, modalRoot, preferred
     throw new Error(`账号 ${selected.accountId} 已显示为锁定状态，未重复锁定`);
   }
 
+  debugLog('real_lockout.account_row_verified', {
+    preferredAccountId,
+    selectedAccountId: selected.accountId,
+    selectedRowText: truncateText(selected.rowText, 240),
+    selectedRect: {
+      left: Math.round(selected.rect.left),
+      top: Math.round(selected.rect.top),
+      width: Math.round(selected.rect.width),
+      height: Math.round(selected.rect.height)
+    }
+  });
   clickSavedStepTarget(selected.el, 1, 'new account duration dropdown');
   await sleep(300);
 
@@ -2900,12 +2940,42 @@ async function executeNewAccountLockoutAfterManualOpen(cfg, modalRoot, preferred
   clickSavedStepTarget(lockAccountButton, 3, 'new lock account button');
   await sleep(600);
 
-  const confirmButton = await waitForActionByText(
-    () => findVisibleModalRootByText(/锁定所选账户的交易|锁定所选账户|Lock.*selected/i, [
-      /无法下达新的交易|无法下达|锁定账户|返回|Lock/i
-    ]) || document.body,
+  const confirmRoot = await (async () => {
+    const started = Date.now();
+    while (Date.now() - started < 5000) {
+      const root = findVisibleModalRootByText(/锁定所选账户的交易|锁定所选账户|Lock.*selected/i, [
+        /无法下达新的交易|无法下达|锁定账户|返回|Lock/i
+      ]);
+      if (root) return root;
+      await sleep(150);
+    }
+    return null;
+  })();
+  if (!confirmRoot) throw new Error('找不到新版二次确认弹窗');
+
+  const confirmAccountIds = Array.from(new Set(
+    Array.from(textOf(confirmRoot).matchAll(/\b[A-Z]{2,}\d{8,}\b/g), match => match[0])
+  ));
+  if (!confirmAccountIds.includes(selected.accountId) || confirmAccountIds.some(accountId => accountId !== selected.accountId)) {
+    const backButton = findActionByText(confirmRoot, /不[，,]?\s*返回|取消|返回|No.*Back|Cancel/i, {
+      preferActionButton: true,
+      preferLower: true,
+      preferRight: true
+    });
+    if (backButton) {
+      clickExact(backButton);
+      await sleep(300);
+    }
+    throw new Error(`二次确认弹窗账户不匹配，已停止锁定。预期：${selected.accountId}；实际：${confirmAccountIds.join(', ') || '未显示账户'}`);
+  }
+  debugLog('real_lockout.confirm_account_verified', {
+    expectedAccountId: selected.accountId,
+    confirmAccountIds
+  });
+
+  const confirmButton = findActionByText(
+    confirmRoot,
     /是[，,]?\s*锁定账户|是的[，,]?\s*锁定账户|Yes.*Lock/i,
-    5000,
     { preferActionButton: true, preferLower: true, preferRight: true }
   );
   if (!confirmButton) throw new Error('找不到新版二次确认“是，锁定账户”按钮');
@@ -3585,13 +3655,35 @@ async function monitorScan({ manual = false } = {}) {
       const skipped = 'pnl unchanged after lock';
       return { ok: true, locked: false, skipped, kind, tradeStats, ...result };
     }
-    debugLog('auto_lock.stale_trade_count_locked_state_retry', {
-      reason: 'stored trade_count locked state but page is not locked',
+    const recordedLockExpiresAt = Number(state.lockExpiresAt) > 0
+      ? Number(state.lockExpiresAt)
+      : lockExpiresAt(state.lockDuration || cfg.lockDuration || 'end_of_day', Number(state.lockedAt) || now);
+    if (recordedLockExpiresAt > now) {
+      debugLog('auto_lock.trade_count_lock_state_respected', {
+        reason: 'account-scoped trade_count lock is still active',
+        lockKey,
+        tradeEntryCount: Number.isFinite(tradeEntryCount) ? tradeEntryCount : null,
+        stateTradeEntryCount: Number.isFinite(Number(state.tradeEntryCount)) ? Number(state.tradeEntryCount) : null,
+        stateLockedAt: state.lockedAt || null,
+        stateLockExpiresAt: recordedLockExpiresAt,
+        pageLocked: accountCurrentlyLocked
+      });
+      return {
+        ok: true,
+        locked: false,
+        skipped: 'trade count lock already active',
+        kind,
+        tradeStats,
+        ...result
+      };
+    }
+    debugLog('auto_lock.expired_trade_count_lock_retry', {
+      reason: 'stored trade_count lock has expired',
       lockKey,
       tradeEntryCount: Number.isFinite(tradeEntryCount) ? tradeEntryCount : null,
       stateTradeEntryCount: Number.isFinite(Number(state.tradeEntryCount)) ? Number(state.tradeEntryCount) : null,
       stateLockedAt: state.lockedAt || null,
-      stateLockExpiresAt: state.lockExpiresAt || null,
+      stateLockExpiresAt: recordedLockExpiresAt,
       pageLocked: accountCurrentlyLocked
     });
   }
