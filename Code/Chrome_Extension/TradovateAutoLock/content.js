@@ -3032,12 +3032,23 @@ async function executeRealLockout() {
   clickSavedStepTarget(manualLock, 0, 'manual lock button');
   await sleep(500);
 
-  const newModalRoot = await waitForNewAccountLockModal(2500);
+  const newModalRoot = await waitForNewAccountLockModal(10000);
   if (newModalRoot) {
     return executeNewAccountLockoutAfterManualOpen(cfg, newModalRoot, preferredAccountId);
   }
 
-  return executeLegacyLockoutAfterManualOpen(cfg);
+  const legacyDropdown = document.querySelector('button.manual-lockout-modal__dropdown-select, .manual-lockout-modal__dropdown-select');
+  if (legacyDropdown && isVisible(legacyDropdown)) {
+    return executeLegacyLockoutAfterManualOpen(cfg);
+  }
+
+  debugLog('real_lockout.modal_timeout', {
+    preferredAccountId,
+    waitedMs: 10000,
+    manualLockButtonState: currentManualLockButtonState(),
+    pageIndicatesLocked: pageIndicatesLocked()
+  });
+  throw new Error('点击“手动锁定”后 10 秒内没有出现新版账户选择弹窗，已停止，避免切换到未绑定账户的旧版定位流程。');
 }
 
 function extractTradovateEquityByGeometry() {
@@ -3723,6 +3734,13 @@ async function monitorScan({ manual = false } = {}) {
     }, result.accountId);
     return { ok: true, locked: true, kind, lockResult, tradeStats, ...result };
   } catch (err) {
+    debugLog('auto_lock.real_lockout_failed', {
+      accountId: result.accountId || accountId,
+      kind,
+      error: err.message || String(err),
+      pageIndicatesLocked: pageIndicatesLocked(),
+      lockButtonState: currentManualLockButtonState()
+    });
     await setAutoLockState({
       status: 'error',
       lockKey,

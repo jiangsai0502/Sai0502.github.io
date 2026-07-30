@@ -1790,7 +1790,7 @@
 
    > 1. 安装 Hammerspoon
    >
-   > 2. 打开配置文件 `open /Users/jiangsai/.hammerspoon/init.lua`，粘贴下方代码
+   > 2. 打开配置文件 `open /Users/sai/.hammerspoon/init.lua`，粘贴下方代码
    >
    >    ```bash
    >    -- 获取屏幕可用高度（扣除菜单栏）
