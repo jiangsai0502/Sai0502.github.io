@@ -56,9 +56,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                                       
+>                                                          
 >    open ~/.zshrc
->                                                       
+>                                                          
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -191,14 +191,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                             
+>                                 
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                             
+>                                 
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
@@ -325,7 +325,7 @@ VPN开启后Chrome可翻墙，终端不行
 >   >
 >   > ![img](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202308271236418.png)
 
-##### 禁用自动更新
+##### 禁用istatmenus自动更新
 
 > ```bash
 > backup="$HOME/Desktop/iStat-All-Cache-Backup-$(date '+%Y%m%d-%H%M%S')"
@@ -372,6 +372,33 @@ VPN开启后Chrome可翻墙，终端不行
 > launchctl kickstart -k "gui/$UID/com.bjango.istatmenus.status"
 > 
 > echo "全部iStat网络缓存已隔离到：$backup"
+> ```
+
+##### 安装Node
+
+> 查询 VPN App 的代理端口
+>
+> ![image-20260802223540998](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608022235080.png)
+>
+> > **HTTP 代理监听在 172.20.10.4:8234**，说明 Surge 在使用 **8234** 端口提供 HTTP 代理服务。
+>
+> [Node官网](https://nodejs.org/en/download/current)
+>
+> ```bash
+> # 使用代理下载并安装 nvm
+> export https_proxy=http://127.0.0.1:8234 http_proxy=http://127.0.0.1:8234 all_proxy=socks5://127.0.0.1:8234 && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+> 
+> # 立即在当前终端启用 NVM
+> \. "$HOME/.nvm/nvm.sh"
+> 
+> # 下载并安装 Node.js:
+> nvm install 26
+> 
+> # 验证 Node.js 版本:
+> node -v # Should print "v26.5.1".
+> 
+> # 验证 npm 版本:
+> npm -v # Should print "11.17.0".
 > ```
 
 ##### Itsycal安装后隐藏系统日期

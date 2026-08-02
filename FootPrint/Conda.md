@@ -8,7 +8,7 @@
 
 > **安装**
 >
-> * 官网安装
+> * [官网](https://www.anaconda.com/) 下载 **Miniconda**
 >
 > * 给conda挂代理  
 >
@@ -116,45 +116,39 @@
 >
 >   >`conda deactivate`
 >
-> * 创建名为 py2 的python2.7的虚拟环境，创建名为 py3 的python3的虚拟环境
+> * 创建名为 py3.10 的虚拟环境
 >
->   > `conda create -n py2 python=2.7`
->   >
->   > `conda create -n py3 python=3.10`
+>   > `conda create -n py3.10 python=3.10`
+>   
+> * 激活虚拟环境 py3.10
 >
-> * 激活虚拟环境py3
+>   > `conda activate py3.10`
 >
->   > `conda activate py3`
->
-> * py3中Python的位置
+> * py3.10 中 Python 的位置
 >
 >   > `which python `
->   >
+>  >
 >   > ```
->   > # /Users/jiangsai/anaconda3/envs/py3/bin/python
+>   > /opt/miniconda3/envs/py3.10/bin/python
+> 
+> * 切换虚拟环境到 base 
 >
-> * 切换虚拟环境到py2 
+>   > `conda activate base`
 >
->   > `conda activate py2`
+> * 在 base 环境下，删除 py3.10
 >
-> * 在当前虚拟环境py2 下，删除虚拟环境 py3
->
->   > `conda env remove -n py3`
->
-> * 为当前的虚拟环境 py2 安装flask包
->
->   >`conda install flask`
+>   > `conda env remove -n py3.10`
 >
 > * 虚拟环境下包的安装路径
 >
 >   > ```
->   > /Users/jiangsai/anaconda3/envs/py3/lib/python3.10/site-packages
->
-> * 为当前的虚拟环境更新flask包
->
->   >`conda update flask`
->
-> * 为当前的虚拟环境删除flask包
+>  > /opt/miniconda3/envs/py3.10/lib/python3.10/site-packages
+> 
+>* 为当前的虚拟环境更新 flask
+> 
+>  >`conda update flask`
+> 
+> * 为当前的虚拟环境删除 flask
 >
 >   > `conda remove flask`
 >
@@ -165,11 +159,11 @@
 > * 虚拟环境中使用pip
 >
 >   >坑：[conda虚拟环境使用pip慎重](https://www.cnblogs.com/zhangxingcomeon/p/13801554.html)
->   >
+>  >
 >   >* 进入py3后，查看此时要用的pip在哪个环境
->   >
+>  >
 >   >  >`pip3 -V`
->   >  >
+>  >  >
 >   >  >base环境的pip：可能在
 >   >  >
 >   >  >```

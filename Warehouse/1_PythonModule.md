@@ -1141,6 +1141,12 @@ for filename in os.listdir(input_folder):
 print("全部处理完成！")
 ```
 
+#### 10. OBS录制的视频转一下，QuickTime 才能修剪
+
+```bash
+ffmpeg -i "2026-08-02 15-41-16.mp4" -c copy -movflags +faststart "2026-08-02.mp4"
+```
+
 #### 下载荔枝音频
 
 <img src="https://gitee.com/jiangsai0502/PicBedRepo/raw/master/20200729012642.png" style="zoom:50%;" />

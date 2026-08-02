@@ -21,4 +21,22 @@
 * Trading
   * [HZGB](Warehouse/HuZi)
   * [形研](Warehouse/XingYanShe)
-
+* 爬虫技巧
+  * [Web SCraper](Warehouse/Web_Scraper.md)
+  * [PlayWright](Warehouse/Playwright.md)
+  * [Xpath](Warehouse/xpath.md)
+  * [CSS基础语法](Warehouse/css.md)
+  * [Python三方库](Warehouse/Python_Useful_Lib.md)
+    * [PyAutoGUI](Warehouse/PyAutoGUI.md)
+    * [PyAutoGUI结合OpenCV](Warehouse/PyAutoGUI_OpenCV.md)
+    * [Pynput键盘监听&输入](Warehouse/Pynput.md)
+  * [JavaScript](Warehouse/JavaScript.md)
+  * [JavaScript游戏](Warehouse/JavaScript_Game.md)
+  * [MySQL用法](Warehouse/2_MySQL.md)
+* 待提升
+  * [PlayWright无界面](Warehouse/Playwright_work.md)
+  * [PlayWright异步](Warehouse/playwright_async.md)
+  * [Python高级用法](Warehouse/Python_Advanced)
+  * [Python常用模块](Warehouse/1_PythonModule.md)
+  * [PyQt5](Warehouse/1_PyQt5.md)
+  * [小米设备](Warehouse/XiaoMi)

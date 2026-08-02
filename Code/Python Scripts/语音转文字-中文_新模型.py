@@ -1,3 +1,6 @@
+# 安装必要的库
+# pip install faster-whisper zhconv
+
 import os
 import time
 from faster_whisper import WhisperModel
@@ -132,6 +135,6 @@ def cooking(input_path, whisper_model_name):
         print(f"提供的路径无效：{input_path}")
 
 if __name__ == "__main__":
-    input_path = '/Users/jiangsai/Movies/OBS/2026-07-10 00-12-18.mp4'
+    input_path = '/Users/sai/Downloads/Trading/2026-0802青鸟德派系统.mp4'
     whisper_model_name = "medium"  # 可用: "tiny", "base", "small", "medium", "large-v3"
     cooking(input_path, whisper_model_name)
