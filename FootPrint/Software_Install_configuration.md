@@ -56,9 +56,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                                          
+>                                                                
 >    open ~/.zshrc
->                                                          
+>                                                                
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -191,14 +191,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                                 
+>                                         
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                                 
+>                                         
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
@@ -411,25 +411,25 @@ VPN开启后Chrome可翻墙，终端不行
 
 ##### Alfred配置
 
-> 1. 将Spotlight的快捷键分给Alfred
+> 1. 取消 Spotlight 聚焦 的快捷键，让给 Alfred
 >
->    ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/20220413142827.png)
+>    ![image-20260804125750030](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608041257082.png)
 >
-> 2. 搜索排除某个文件夹
+> 2. Alfred 只搜索固定范围的目录
 >
->    1. 添加要排除的文件夹
+>    ![image-20260804130728428](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608041307481.png)
 >
->    2. 调出alfred，输入reload回车，清空alfred缓存
+> 3. Alfred 常用文件操作
 >
->       ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/20220413143239.png)
+>    ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/20220413143409.png)
 >
->    3. 自定义文件操作
+>    * **Quick Search**：最常用，`Space + 关键字`快速启用打开文件，功能类似于使用 `Open + 关键字`
 >
->       ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/20220413143409.png)
+>    * **Inside Files**：最常用，`in + 关键字`查找包含查询字的文件
 >
->    **Quick Search**：最常用，`Space + 关键字`快速启用打开文件，功能类似于使用 `Open + 关键字`
+>      * 当连续的长关键词无法搜出来的时候，可以尝试在关键词之间加空格
 >
->    **Inside Files**：最常用，`in + 关键字`查找包含查询字的文件
+>        ![image-20260804131712970](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608041317038.png)
 
 ##### GitHub + PicGo + Typora搭建图床
 
@@ -626,9 +626,7 @@ VPN开启后Chrome可翻墙，终端不行
 >
 > * 基础设置
 >
->   ![image-20250315222703689](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20250315222703689.png)
->
->   ![image-20250319003142590](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20250319003142590.png)
+>   ![image-20260804123309585](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608041233687.png)
 >
 > * 去除环境音
 >
@@ -637,9 +635,9 @@ VPN开启后Chrome可翻墙，终端不行
 > * 画质提升
 >
 >   ![image-20250319003024248](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20250319003024248.png)
->   
-> * 外接屏幕调整尺寸
 >
+> * 外接屏幕调整尺寸
+>   
 >   ![image-20260706225358439](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260706225358439.png)
 
 ##### PDF Expert 禁止更新

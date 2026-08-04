@@ -1,6 +1,8 @@
 const CACHE_PREFIX = "weekly-news:";
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
-const BUILD_LABEL = "ForexFactoryWeekOverlay v2026_0630_211530";
+const PARTIAL_CACHE_TTL_MS = 15 * 60 * 1000;
+const PARTIAL_EVENT_THRESHOLD = 4;
+const BUILD_LABEL = "ForexFactoryWeekOverlay v2026_0802_235500";
 const DEFAULT_CURRENCIES = new Set(["USD"]);
 const DEFAULT_IMPACTS = new Set(["High", "Medium"]);
 const WEEKDAY_CN = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
@@ -161,8 +163,11 @@ async function handleGetOverlayData(options = {}) {
   const cache = await chrome.storage.local.get(cacheKey);
   const cached = cache[cacheKey];
   const cacheTtl = Math.max(1, Number(settings.cacheHours || 4)) * 60 * 60 * 1000;
+  const cachedTtl = cached && cached.debug && cached.debug.partial
+    ? Math.min(cacheTtl, PARTIAL_CACHE_TTL_MS)
+    : cacheTtl;
 
-  if (!options.forceRefresh && cached && now - cached.fetchedAt < cacheTtl) {
+  if (!options.forceRefresh && cached && now - cached.fetchedAt < cachedTtl) {
     return {
       ok: true,
       source: "cache",
@@ -171,13 +176,17 @@ async function handleGetOverlayData(options = {}) {
         build: BUILD_LABEL,
         source: "cache",
         cacheKey,
-        cacheAgeMs: now - cached.fetchedAt
+        cacheAgeMs: now - cached.fetchedAt,
+        cacheTtlMs: cachedTtl
       })
     };
   }
 
   const payload = await fetchWeeklyPayload(anchor, settings);
-  const debug = payload.debug || {};
+  const debug = Object.assign({}, payload.debug || {}, {
+    partial: isLikelyPartialPayload(payload)
+  });
+  payload.debug = debug;
   await chrome.storage.local.set({
     [cacheKey]: {
       fetchedAt: now,
@@ -194,7 +203,9 @@ async function handleGetOverlayData(options = {}) {
       build: BUILD_LABEL,
       source: "live",
       cacheKey,
-      cacheAgeMs: 0
+      cacheAgeMs: 0,
+      cacheTtlMs: debug.partial ? Math.min(cacheTtl, PARTIAL_CACHE_TTL_MS) : cacheTtl,
+      partial: debug.partial
     })
   };
 }
@@ -402,31 +413,40 @@ async function waitForCalendarRowsReady(tabId, timeoutMs = 8000) {
   const startedAt = Date.now();
   let bestScore = -1;
   let best = null;
+  let previousSignature = "";
+  let stablePolls = 0;
   while (Date.now() - startedAt < timeoutMs) {
     const [result] = await chrome.scripting.executeScript({
       target: { tabId },
       func: () => {
         const rows = Array.from(document.querySelectorAll("tr.calendar__row"));
         const daySet = new Set();
+        let eventCount = 0;
         for (const tr of rows) {
           const dateText = tr.querySelector("td.calendar__date .date")?.innerText?.replace(/\s+/g, " ").trim() || "";
           if (dateText) daySet.add(dateText);
+          const eventTitle = tr.querySelector(".calendar__event-title")?.innerText?.trim() || "";
+          if (eventTitle) eventCount += 1;
         }
         return {
           rowCount: rows.length,
           dayCount: daySet.size,
+          eventCount,
           bodyText: document.body ? document.body.innerText || "" : ""
         };
       }
     });
-    const value = result && result.result ? result.result : { rowCount: 0, dayCount: 0, bodyText: "" };
-    const score = value.rowCount + value.dayCount * 100;
+    const value = result && result.result ? result.result : { rowCount: 0, dayCount: 0, eventCount: 0, bodyText: "" };
+    const signature = `${value.rowCount}:${value.dayCount}:${value.eventCount}`;
+    stablePolls = signature === previousSignature ? stablePolls + 1 : 0;
+    previousSignature = signature;
+    const score = value.rowCount + value.dayCount * 100 + value.eventCount * 10;
     if (score > bestScore) {
       bestScore = score;
       best = Object.assign({ elapsedMs: Date.now() - startedAt }, value);
     }
-    if (value.dayCount >= 5 && value.rowCount >= 20) {
-      return Object.assign({ ok: true, reason: "enough_rows", elapsedMs: Date.now() - startedAt }, value);
+    if (value.dayCount >= 5 && value.rowCount >= 20 && stablePolls >= 2) {
+      return Object.assign({ ok: true, reason: "enough_rows_stable", elapsedMs: Date.now() - startedAt }, value);
     }
     if (/安全验证|Cloudflare|验证您不是自动程序|Please Wait|Just a moment/i.test(value.bodyText || "")) {
       return Object.assign({ ok: false, reason: "cloudflare_or_wait_page", elapsedMs: Date.now() - startedAt }, value);
@@ -437,7 +457,15 @@ async function waitForCalendarRowsReady(tabId, timeoutMs = 8000) {
     ok: false,
     reason: "timeout",
     elapsedMs: Date.now() - startedAt
-  }, best || { rowCount: 0, dayCount: 0, bodyText: "" });
+  }, best || { rowCount: 0, dayCount: 0, eventCount: 0, bodyText: "" });
+}
+
+function isLikelyPartialPayload(payload) {
+  const debug = payload && payload.debug ? payload.debug : {};
+  return debug.primarySource === "webpage"
+    && debug.ready
+    && debug.ready.dayCount >= 5
+    && debug.eventCount < PARTIAL_EVENT_THRESHOLD;
 }
 
 function scrapeCalendarPage() {

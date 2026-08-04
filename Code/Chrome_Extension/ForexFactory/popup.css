@@ -69,8 +69,16 @@ body {
   font-weight: 600;
 }
 
-.popup-loading {
+.popup-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding: 8px 12px 0;
+}
+
+.popup-loading {
+  padding: 0;
   min-height: 18px;
   font-size: 11px;
   color: #9ca3af;
@@ -78,6 +86,22 @@ body {
 
 .popup-loading:empty {
   display: none;
+}
+
+.popup-refresh {
+  flex: 0 0 auto;
+  border: 1px solid rgba(46, 192, 255, 0.45);
+  border-radius: 8px;
+  padding: 4px 9px;
+  background: #0d2038;
+  color: #dbeafe;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.popup-refresh:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .popup-days {

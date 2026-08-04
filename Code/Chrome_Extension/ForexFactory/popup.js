@@ -4,7 +4,8 @@ const resultDays = document.getElementById("result-days");
 const debugPre = document.getElementById("debug-output");
 const buildNode = document.getElementById("build-label");
 const copyDebugButton = document.getElementById("copy-debug");
-const POPUP_BUILD_LABEL = "ForexFactoryWeekOverlay v2026_0630_211530";
+const refreshButton = document.getElementById("refresh-data");
+const POPUP_BUILD_LABEL = "ForexFactoryWeekOverlay v2026_0802_235500";
 
 init().catch((error) => {
   statusNode.textContent = error && error.message ? error.message : String(error);
@@ -26,6 +27,11 @@ async function init() {
   await loadPopupData(false);
 }
 
+refreshButton.addEventListener("click", async () => {
+  statusNode.textContent = "正在重新获取...";
+  await loadPopupData(true);
+});
+
 includeEUR.addEventListener("change", async () => {
   const stored = await chrome.storage.local.get("ffwo_settings");
   const currentSettings = Object.assign(
@@ -45,25 +51,30 @@ includeEUR.addEventListener("change", async () => {
 });
 
 function loadPopupData(forceRefresh) {
+  refreshButton.disabled = true;
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: forceRefresh ? "ffwo:refreshPopupData" : "ffwo:getPopupData" }, (response) => {
       const lastError = chrome.runtime.lastError;
       if (lastError) {
         statusNode.textContent = `获取失败：${lastError.message || "扩展通信失败"}`;
         renderError(statusNode.textContent);
+        refreshButton.disabled = false;
         resolve();
         return;
       }
       if (!response || !response.ok) {
         statusNode.textContent = `获取失败：${(response && response.error) || "未知错误"}`;
         renderError(statusNode.textContent);
+        refreshButton.disabled = false;
         resolve();
         return;
       }
 
-      statusNode.textContent = "";
+      const partial = Boolean(response.debug && response.debug.partial);
+      statusNode.textContent = partial ? "数据源返回内容可能不完整，可稍后重新获取" : "";
       resultDays.innerHTML = renderDays(response.payload.days);
       renderDebug(response);
+      refreshButton.disabled = false;
       resolve();
     });
   });

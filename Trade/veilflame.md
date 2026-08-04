@@ -1788,9 +1788,21 @@
 
 1. Mac上构造 9:16 的环境
 
-   > 1. 安装 Hammerspoon
+   > ![image-20260803124233172](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608031242253.png)
    >
-   > 2. 打开配置文件 `open /Users/sai/.hammerspoon/init.lua`，粘贴下方代码
+   > 方法1：Keyboard Maestro 
+   >
+   > 1. Set Variable to Calculation，设置变量名 LocalAspect，值 9 / 11（可随时改）
+   > 2. Resize a Window
+   >    1. →  (水平位置 - 自动居中）：SCREENVISIBLE(Main,Left) + (SCREENVISIBLE(Main,Width) - (SCREENVISIBLE(Main,Height) * LocalAspect)) / 2
+   >
+   >    2. ↓ (垂直位置 - 顶部对齐)：SCREENVISIBLE(Main,Top)
+   >    3. ↔ (宽度)：SCREENVISIBLE(Main,Height) * LocalAspect
+   >    4. ↕ (高度)：SCREENVISIBLE(Main,Height)
+   >
+   > 方法2：Hammerspoon
+   >
+   > 1. 打开配置文件 `open /Users/sai/.hammerspoon/init.lua`，粘贴下方代码
    >
    >    ```bash
    >    -- 获取屏幕可用高度（扣除菜单栏）
@@ -1803,16 +1815,16 @@
    >    -- 设置窗口为 9:15 比例，高度占满屏幕
    >    function setWindowTo9x15(win)
    >        if not win then return end
-   >        
+   >    
    >        local screen = win:screen()
    >        local frame = screen:frame()
    >        local maxH = frame.h
    >        local targetW = math.floor(maxH * 9 / 15)
-   >        
+   >    
    >        -- 居中放置
    >        local newX = frame.x + math.floor((frame.w - targetW) / 2)
    >        local newY = frame.y
-   >        
+   >    
    >        win:setFrame(hs.geometry.rect(newX, newY, targetW, maxH))
    >    end
    >    
@@ -1850,9 +1862,9 @@
    >    end)
    >    ```
    >
-   > 3. Hammerspoon 顶部栏图标 Reload Config
+   > 2. Hammerspoon 顶部栏图标 Reload Config
    >
-   > 4. 选中 App，control + option + command + r，即可设置成9:16
+   > 3. 选中 App，control + option + command + r，即可设置成9:16
 
 2. OBS录制技巧
 
