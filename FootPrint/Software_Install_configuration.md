@@ -56,9 +56,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                                                
+>                                                                      
 >    open ~/.zshrc
->                                                                
+>                                                                      
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -191,14 +191,14 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                                         
+>                                                 
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                                         
+>                                                 
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
 
@@ -268,16 +268,32 @@ VPN开启后Chrome可翻墙，终端不行
 
 ##### yt-dlp
 
-> **先安装FFmpeg**
+> **先安装FFmpeg、ffprobe**
 >
-> * [下载](https://evermeet.cx/ffmpeg/)：右侧版本 - Download as ZIP，解压得到可执行文件 ffmpeg
+> * [下载](https://evermeet.cx/ffmpeg/)：右侧版本 ffmpeg-8.1.2.7z - Download as ZIP，解压得到可执行文件 ffmpeg
 >
 >   ```bash
+>   # 下面是在 base 环境里安装
 >   sudo mkdir -p /usr/local/bin
 >   sudo mv ~/Downloads/ffmpeg /usr/local/bin/
 >   sudo chmod +x /usr/local/bin/ffmpeg
 >   sudo xattr -dr com.apple.quarantine /usr/local/bin/ffmpeg
 >   ffmpeg -version
+>   
+>   # 下面是在 conda 的 py3.10 环境里安装
+>   conda activate py3.10
+>   conda install ffmpeg -c conda-forge
+>   which ffmpeg
+>   ```
+>
+> * [下载](https://evermeet.cx/ffmpeg/)：右侧版本 ffprobe-8.1.2.7z - Download as ZIP，解压得到可执行文件 ffprobe
+>
+>   ```bash
+>   sudo mkdir -p /usr/local/bin
+>   sudo mv ~/Downloads/ffprobe /usr/local/bin/
+>   sudo chmod +x /usr/local/bin/ffprobe
+>   sudo xattr -dr com.apple.quarantine /usr/local/bin/ffprobe
+>   ffprobe -version
 >   ```
 >
 > **再安装 yt-dlp**

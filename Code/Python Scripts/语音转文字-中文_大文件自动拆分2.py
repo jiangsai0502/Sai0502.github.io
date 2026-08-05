@@ -1,14 +1,13 @@
 """大文件音频分片转录工具。
 
 处理规则：
-1. 通过弹窗输入本地文件或目录。
-2. 不需要分割的文件直接把转录文本保存到桌面。
-3. 超过分片时长的文件在桌面创建唯一工作目录，再提取为 FLAC 分片并转录。
-4. 不指定语言，让 faster-whisper 对每个分片自动识别语言。
-5. 分片文本和最终合并文本不包含时间码。
+1. 每个输入文件在桌面创建一个唯一工作目录，目录不会自动删除。
+2. 超过分片时长的文件先提取为 FLAC 音频分片，再逐段转录。
+3. 不指定语言，让 faster-whisper 对每个分片自动识别语言。
+4. 分片文本和最终合并文本都保存在工作目录中，不包含时间码。
 
 依赖：
-    python -m pip install faster-whisper zhconv
+    pip install faster-whisper zhconv
     ffmpeg 和 ffprobe 需要在 PATH 中。
 """
 
@@ -34,25 +33,8 @@ except ImportError:
     convert = None
 
 
-MEDIA_EXTENSIONS = (
-    ".mp3",
-    ".m4a",
-    ".aac",
-    ".wav",
-    ".flac",
-    ".ogg",
-    ".opus",
-    ".wma",
-    ".webm",
-    ".mp4",
-    ".m4v",
-    ".mkv",
-    ".avi",
-    ".mov",
-    ".mpeg",
-    ".mpg",
-    ".ts",
-)
+MEDIA_EXTENSIONS = (".mp3", ".m4a", ".webm", ".mp4", ".mkv", ".avi", ".mov")
+DEFAULT_INPUT_PATH = "/Users/sai/Downloads/2026-08-04.mp4"
 DEFAULT_SEGMENT_MINUTES = 30
 
 
@@ -110,52 +92,6 @@ def create_workspace(input_path: Path) -> Path:
             continue
 
     raise RuntimeError(f"无法在桌面创建唯一工作目录：{stem}")
-
-
-def prompt_for_source() -> str | None:
-    """显示一个输入框；取消时返回 None。"""
-    try:
-        import tkinter as tk
-        from tkinter import simpledialog
-    except ImportError as error:
-        raise RuntimeError("当前 Python 没有 tkinter，无法显示输入弹窗。") from error
-
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    try:
-        value = simpledialog.askstring(
-            "要转录的文件或目录",
-            "请输入本地文件路径或目录路径：",
-            parent=root,
-        )
-    finally:
-        try:
-            # 在开始耗时转录前，让系统先处理窗口隐藏和关闭事件。
-            root.withdraw()
-            root.update_idletasks()
-            root.update()
-        finally:
-            root.destroy()
-
-    if value is None:
-        return None
-    value = value.strip()
-    if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
-        value = value[1:-1].strip()
-    return value
-
-
-def find_media_files(directory: Path) -> list[Path]:
-    """查找目录第一层中的音视频文件。"""
-    return sorted(
-        (
-            path.resolve()
-            for path in directory.iterdir()
-            if path.is_file() and path.suffix.lower() in MEDIA_EXTENSIONS
-        ),
-        key=lambda path: path.name.lower(),
-    )
 
 
 def require_tool(name: str) -> str:
@@ -293,13 +229,13 @@ def process_file(
     segment_seconds: int,
     force: bool,
 ) -> Path:
+    workspace = create_workspace(input_path)
+    print(f"工作目录（保留不删除）：{workspace}")
+
     duration = get_media_duration(input_path, ffprobe_path)
     print(f"原文件时长：{format_seconds(duration)}")
 
     if duration > segment_seconds:
-        workspace = create_workspace(input_path)
-        output_path = workspace / f"{input_path.stem}.txt"
-        print(f"工作目录（保留不删除）：{workspace}")
         parts = split_to_audio_parts(
             input_path,
             workspace,
@@ -312,27 +248,29 @@ def process_file(
             texts.append(transcribe_part(model, part_path, force))
         final_text = "\n\n".join(text.strip() for text in texts if text.strip())
     else:
-        workspace = None
-        desktop = Path.home() / "Desktop"
-        desktop.mkdir(parents=True, exist_ok=True)
-        output_path = desktop / f"{input_path.stem}.txt"
-        if output_path.exists() and not force:
-            raise FileExistsError(
-                f"最终文本已存在：{output_path}\n"
-                "如需覆盖，请重新运行并加上 --force。"
-            )
         print("文件没有超过分片时长，直接转录。")
         final_text = simplify_text(transcribe_audio_file(model, input_path))
 
+    output_path = workspace / f"{input_path.stem}.txt"
+    if output_path.exists() and not force:
+        raise FileExistsError(
+            f"最终文本已存在：{output_path}\n"
+            "如需覆盖，请重新运行并加上 --force。"
+        )
     atomic_write_text(output_path, final_text + ("\n" if final_text else ""))
     print(f"转录完成：{output_path}")
-    if workspace:
-        print(f"分片和中间文本仍保留在：{workspace}")
+    print(f"分片和中间文本仍保留在：{workspace}")
     return output_path
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="大文件自动拆分并转录为纯文本")
+    parser.add_argument(
+        "input_path",
+        nargs="?",
+        default=DEFAULT_INPUT_PATH,
+        help="视频或音频文件路径；不填写时使用脚本中的默认路径",
+    )
     parser.add_argument(
         "--model",
         default="medium",
@@ -355,52 +293,23 @@ def main() -> None:
     if args.segment_minutes <= 0:
         raise SystemExit("--segment-minutes 必须大于 0。")
 
+    input_path = Path(args.input_path).expanduser().resolve()
+    if not input_path.is_file():
+        raise SystemExit(f"输入文件不存在：{input_path}")
+
+    ffmpeg_path = require_tool("ffmpeg")
+    ffprobe_path = require_tool("ffprobe")
+    model = WhisperModel(args.model, compute_type="int8")
+
     try:
-        source = prompt_for_source()
-        if source is None:
-            print("已取消转录。")
-            return
-        if not source:
-            raise RuntimeError("没有输入文件或目录。")
-
-        ffmpeg_path = require_tool("ffmpeg")
-        ffprobe_path = require_tool("ffprobe")
-        input_path = Path(source).expanduser().resolve()
-        if input_path.is_file():
-            if input_path.suffix.lower() not in MEDIA_EXTENSIONS:
-                raise RuntimeError(f"不支持的音视频格式：{input_path.suffix or '无扩展名'}")
-            jobs = [input_path]
-        elif input_path.is_dir():
-            media_files = find_media_files(input_path)
-            if not media_files:
-                raise RuntimeError(f"目录第一层没有找到支持的音视频文件：{input_path}")
-            print(f"目录中找到 {len(media_files)} 个音视频文件。")
-            jobs = media_files
-        else:
-            raise RuntimeError(f"输入路径不存在：{input_path}")
-
-        print(f"正在加载 Whisper {args.model} 模型……")
-        model = WhisperModel(args.model, compute_type="int8")
-        failures: list[str] = []
-        for index, input_path in enumerate(jobs, 1):
-            if len(jobs) > 1:
-                print(f"\n===== 正在处理 ({index}/{len(jobs)})：{input_path.name} =====")
-            try:
-                process_file(
-                    model,
-                    input_path,
-                    ffmpeg_path,
-                    ffprobe_path,
-                    args.segment_minutes * 60,
-                    args.force,
-                )
-            except Exception as error:
-                failures.append(f"{input_path.name}：{error}")
-                print(f"处理失败：{input_path.name}：{error}")
-
-        if failures:
-            details = "\n".join(f"- {failure}" for failure in failures)
-            raise RuntimeError(f"有 {len(failures)} 个任务失败：\n{details}")
+        process_file(
+            model,
+            input_path,
+            ffmpeg_path,
+            ffprobe_path,
+            args.segment_minutes * 60,
+            args.force,
+        )
     except subprocess.CalledProcessError as error:
         raise SystemExit(
             f"外部命令执行失败（退出码 {error.returncode}）。"
