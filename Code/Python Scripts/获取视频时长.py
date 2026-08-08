@@ -1,3 +1,10 @@
+"""
+视频时长批量统计工具
+依赖：已安装ffmpeg(ffprobe)
+功能：遍历目录视频，生成Markdown表格与CSV时长清单，按文件夹统计总时长
+支持格式：mp4、mkv、avi、mov
+"""
+
 import os
 import subprocess
 import csv

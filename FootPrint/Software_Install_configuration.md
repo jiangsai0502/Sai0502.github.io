@@ -1,7 +1,7 @@
 #### 常备软件
 
 > * 文字处理：office、sublime、Typora、Easydict、Paste、PDF expert、XMind
-> * 效率工具：Keyboard Maestro、go2shell（官网下载）、snipaste、rename、PicGo、Easydict、flow、downie
+> * 效率工具：Keyboard Maestro、snipaste、rename、PicGo、Easydict、flow、downie
 > * 系统工具：App Cleaner、Mos、itsycal、Alfred 5、iTerm、WgetCloud、GitHub Desktop、Geph、istat menus、VS Code、The Unarchiver、
 
 ##### 触摸板
@@ -56,9 +56,9 @@ VPN开启后Chrome可翻墙，终端不行
 >    ```bash
 >    # 创建 .zshrc 文件
 >    echo >> ~/.zshrc
->                                                                      
+>                                                                               
 >    open ~/.zshrc
->                                                                      
+>                                                                               
 >    # 在文件最后添加下面两句
 >    export http_proxy="http://127.0.0.1:8234" export https_proxy="http://127.0.0.1:8234"
 >    ```
@@ -91,15 +91,48 @@ VPN开启后Chrome可翻墙，终端不行
 
 > 1. 官网下载安装App
 >
-> 2. 官网下载安装go2shell
+> 2. 制作 Finder 快捷启动
 >
->    ![image-20260725012032392](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202607250120444.png)
+>    1. 打开 **「自动操作」(Automator)** → 新建 → 选 **「应用程序」**→ 搜索 **「运行 AppleScript」**
 >
-> 3. 设为默认：iTerm2 -> Make ITerm2 Default Term
+>       ```bash
+>       on run
+>       	set targetPath to missing value
+>       	try
+>       		tell application "Finder"
+>       			set targetPath to POSIX path of (target of front window as alias)
+>       		end tell
+>       	end try
+>       	if targetPath is missing value then
+>       		set targetPath to POSIX path of (path to desktop)
+>       	end if
+>       	tell application "iTerm"
+>       		activate
+>       		set newWindow to (create window with default profile)
+>       		tell current session of newWindow
+>       			write text "cd " & quoted form of targetPath
+>       		end tell
+>       	end tell
+>       end run
+>       ```
+>
+>    2. 保存到「桌面」，名字「打开iTerm」，将之拖入「应用程序」目录
+>
+>    3. 在「应用程序」目录，**按住 ⌘ 把「打开iTerm」拖到 Finder 工具栏**
+>
+>    4. 替换图标：在「应用程序」目录，右键打开「iTerm」和「打开iTerm」的简介，点一下「iTerm」简介**左上角小图标**（选中后会有一圈蓝色高亮）→ 复制 → 去到「打开iTerm」简介**左上角小图标**→ 粘贴 → Finder 工具栏的图标会自动更新
+>
+>       ![image-20260808145239389](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608081452518.png)
+>
+> 3. 关闭内置浏览器，随后重启 iTerm
+>
+>    ![image-20260809002133087](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202608090021182.png)
+>
+> 4. 设为默认：iTerm2 -> Make ITerm2 Default Term
 >
 >    ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/20220413110312.png)
 >
-> 4. 快捷键
+> 5. 快捷键
 >
 >    1. 光标按照单词快速移动：iTerm2 -> Settings -> Keys -> Key Bindings
 >
@@ -111,7 +144,7 @@ VPN开启后Chrome可翻墙，终端不行
 >
 >       * 修改 ⌘+Delete 的映射，⌘+Delete 代表 control + w
 >
-> 5. 安装Oh my zsh [参考](https://segmentfault.com/a/1190000041138667?utm_source=sf-similar-article)
+> 6. 安装Oh my zsh [参考](https://segmentfault.com/a/1190000041138667?utm_source=sf-similar-article)
 >
 >    ```bash
 >    # 1. 设置 oh-my-zsh 从 Gitee 镜像安装
@@ -132,7 +165,7 @@ VPN开启后Chrome可翻墙，终端不行
 >    source ~/.zshrc
 >    ```
 >
-> 6. 安装PowerFonts字体
+> 7. 安装PowerFonts字体
 >
 >    ```bash
 >    1. 下载：https://github.com/powerline/fonts
@@ -141,66 +174,67 @@ VPN开启后Chrome可翻墙，终端不行
 >    4. 安装：./install.sh
 >    ```
 >
-> 7. 设置字体
+> 8. 设置字体
 >
 >    * iTerm2 -> Settings -> Profiles -> Text，在Font区域选中Change Font，然后找到Meslo LG字体，有L、M、S可选
 >
 >    ![](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/20220413112345.png)
 >
-> 8. 配色方案
+> 9. 配色方案
 >
 >    iTerm2 -> Settings -> Profiles -> Colors -> Color Presets
 >
 >    ![image-20241222090429902](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20241222090429902.png)
 >
-> 9. 设置主题
+> 10. 设置主题
 >
->    ```bash
->    open ~/.zshrc
->    # 搜索'ZSH_THEME'，修改为ZSH_THEME="agnoster"
->    source ~/.zshrc
->    ```
+>     ```bash
+>     open ~/.zshrc
+>     # 搜索'ZSH_THEME'，修改为ZSH_THEME="agnoster"
+>     source ~/.zshrc
+>     ```
 >
-> 10. 设置语法高亮
+> 11. 设置语法高亮
 >
 >     ```bash
 >     brew install zsh-syntax-highlighting
 >     输出To activate the syntax highlighting, add the following at the end of your .zshrc:
 >       source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
->
+>     
 >     open ~/.zshrc
->
+>     
 >     最后插入一行：source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
->
+>     
 >     source ~/.zshrc
 >     ```
 >
-> 11. 自动提示与命令补全
+> 12. 自动提示与命令补全
 >
 >     ```bash
 >     下载 https://github.com/zsh-users/zsh-autosuggestions，解压并改名为 zsh-autosuggestions
 >     open ~/.oh-my-zsh/plugins
 >     # 将 zsh-autosuggestions 拖入目录 ~/.oh-my-zsh/plugins
 >     open ~/.zshrc
->
+>     
 >     搜索'plugins'，修改为 plugins=(zsh-autosuggestions)
 >     source ~/.zshrc
 >     ```
 >
-> 12. 隐藏名字和主机名
+> 13. 隐藏名字和主机名
 >
 >     ```bash
 >     open ~/.oh-my-zsh/themes
->                                                 
+>     
 >     打开agnoster.zsh-theme文件，找到prompt_context()函数，替换为
 >     prompt_context() {
 >       if [[ "$USERNAME" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
 >         prompt_segment black default "Sai"
 >       fi
 >     }
->                                                 
+>     
 >     source ~/.oh-my-zsh/themes/agnoster.zsh-theme
 >     ```
+>
 
 ##### mpv
 
@@ -340,6 +374,63 @@ VPN开启后Chrome可翻墙，终端不行
 >   > * 转mp4：`yt-dlp -f 230 --cookies-from-browser chrome --remux-video mp4 URL`
 >   >
 >   > ![img](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/img/202308271236418.png)
+
+##### ffmpeg
+
+> * 切割视频
+>
+>   ```bash
+>   # 第1种方法：截取第6分钟15秒 - 第11分钟25秒之间的视频，共截取时长为5分10秒的片段
+>   # 特点：切割精准，但可能采不到关键帧，开头出现黑屏
+>   ffmpeg -i "input.mp4" -ss 00:06:15 -to 00:11:25 -c copy "output.mp4"
+>   
+>   # 第2种方法，切割第6分钟15秒 - 第11分钟25秒之间的视频，共截取时长为5分10秒的片段
+>   # 特点：切割不够精准，但开头没有黑屏
+>   ffmpeg -ss 00:06:15 -to 00:11:25 -accurate_seek -i "input.mp4" -codec copy -avoid_negative_ts 1 "output.mp4"
+>   
+>   # 第3种方法，从第6分钟15秒开始，共截取时长为2分25秒的片段
+>   # 特点：没有黑屏
+>   ffmpeg -ss 00:06:15 -i "input.mp4" -to 00:02:25 -vcodec copy -acodec copy -y "output.mp4"
+>   ```
+>
+> * 合并视频
+>
+>   1. 创建一个文本文件`filelist.txt`
+>
+>      ```bash
+>      file 'input1.mp4'
+>      file 'input2.mp4'
+>      file 'input3.mp4'
+>      ```
+>
+>   2. 命令行
+>
+>      ```bash
+>      ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
+>      ```
+>
+> * 视频转换格式
+>
+>   1. mp4 转视频 avi
+>
+>      ```bash
+>      ffmpeg -i video.mp4 video.avi
+>      
+>      #如果想维持源视频文件的质量，使用 -qscale 0 参数
+>      ffmpeg -i video.mp4 -qscale 0 video.avi
+>      ```
+>
+>   2. mp4 转视频 mp3
+>
+>      ```bash
+>      ffmpeg -i input.mp4 -vn output.mp3
+>      ```
+>
+> * OBS录制的视频转一下，QuickTime 才能修剪
+>
+>   ```bash
+>   ffmpeg -i "2026-08-02 15-41-16.mp4" -c copy -movflags +faststart "2026-08-02.mp4"
+>   ```
 
 ##### 禁用istatmenus自动更新
 
@@ -691,44 +782,3 @@ VPN开启后Chrome可翻墙，终端不行
 
    ![image-20260404225432899](https://raw.githubusercontent.com/jiangsai0502/PicBedRepo/master/image-20260404225432899.png)
 
-##### VPS 搭建 VPN [教程](https://www.youtube.com/watch?v=MuWTmEiNe1g)
-
-##### MacOS 连接 iPhone热点抽风断开的自动重连脚本
-
-> ```
-> 启动程序
-> ↓
-> 单例检查（排他运行）
-> ├─ 已有进程运行 ──> 提示并退出
-> └─ 无运行进程 ───> 初始化日志与单例锁，进入主循环
->         ↓
-> 【循环监控】每秒并发探测多网站，检查整体联网状态
-> ├─ 网络正常 ───> 重置故障计数，保持静默监控
-> └─ 连续 2 次断网 ──> 确认断网，触发故障处理机制
->         ↓
-> 【故障处理】检查当前默认出口
-> ├─ 为 iPhone USB ──> 尝试禁用一次该 USB 服务（为 Wi-Fi 让路）
-> └─ 非 USB / 处理完毕 ──> 发起 Wi-Fi 恢复（最多尝试 3 次）
->         ↓
-> 【Wi-Fi 重连与验证】（每次连接后验证 IP/路由/联网）
-> ├─ 任意阶段恢复联网 ──> 重置状态，返回【循环监控】
-> └─ 尝试 3 次均失败 ──> 触发人工干预流程
->         ↓
-> 【人工干预】
-> └─ 弹出系统通知（仅一次），停止自动重连
-> └─ 持续后台检测 ──> 一旦联网成功 ──> 清除状态，恢复【循环监控】
-> ```
->
-> **功能**
->
-> - 通过多目标并发探测，每秒监控系统联网状态
-> - 确认**连续两次断网**后，会自动停用 iPhone USB 共享网络，并尝试**连接指定 Wi-Fi**（最多 3 次）。
-> - 自动连接 3 次都失败后，弹窗提醒人工介入
-> - 手动连接成功后再次重启监控
-> - 所有操作记录到桌面日志文件`macos-network-watchdog.log`
->
-> **使用方法**：macos-network-watchdog.command`右键-制作替身（快捷方式）-挪到桌面
->
-> **注意**：Wi-Fi 名称必须写对，大小写都不能错
->
-> 

@@ -1,3 +1,7 @@
+"""
+Trading‑View 迷你黄金MGC1! 5分钟K线抓取工具
+依赖：tvdatafeed、pandas；自动选取昨日/今日18点至今行情，输出控制台并导出CSV
+"""
 from tvdatafeed import TvDatafeed, Interval
 import pandas as pd
 from datetime import datetime, timedelta

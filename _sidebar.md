@@ -1,8 +1,8 @@
 * [Mac重装](FootPrint/Software_Install_configuration.md)
 * [Mac设置](FootPrint/Mac_Skill.md)
-* [实用脚本](FootPrint/UsefulScript)
+* [Blog建站](FootPrint/Blog.md)
+
 * [Keyboard_Maestro](FootPrint/Keyboard_Maestro.md)
 * [Anki](FootPrint/Anki.md)
 * [Marginnote](FootPrint/Marginnote.md)
-* [Greasemonkey](FootPrint/Greasemonkey.md)
 * [Conda](FootPrint/Conda)

@@ -11,8 +11,9 @@
 3. 超过“切分阈值”的长文件，会先用 ffmpeg 切成 FLAC 分片再逐段转录：
    - 在“最终 txt 所在目录”下建一个与文件同名（不含扩展名）的文件夹，存放分片音频和各分片的 txt；
    - 合并后的最终 txt 放在该文件夹【外面】（即和短文件一样的落点）。
-4. 开跑前会做一次“预检”：一旦发现任何最终 txt 或同名分片文件夹已存在、或目标目录不可写，
-   就在开始转录【之前】统一列出全部问题并终止，不会处理任何文件（避免跑到一半才报错）。
+4. 逐个文件处理，遇到问题不中断整批：某个文件“结果已存在 / 目标不可写 / 读不出时长 /
+   转录失败”时，会跳过它并把原因记下来，继续处理下一个。全部处理完后，如果存在未成功的
+   文件，会在【桌面】生成一个带时间戳的日志（Audio_to_Text_错误日志_年月日_时分秒.log）。
 
 依赖：
     python -m pip install faster-whisper zhconv
@@ -27,6 +28,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 from faster_whisper import WhisperModel
@@ -53,6 +55,10 @@ DEFAULT_SEGMENT_MINUTES = 30
 MODE_BESIDE = "beside"    # 输出到同目录
 MODE_DESKTOP = "desktop"  # 输出到桌面
 
+# 切分分片的文件名前缀。用一个独特前缀，方便递归扫描时把“本工具生成的分片”排除掉，
+# 避免重复运行时把上次切出来的分片当成新的输入媒体文件。
+PART_PREFIX = "a2t_part_"
+
 
 # ============================ 数据结构 ============================
 
@@ -74,6 +80,14 @@ class Job:
     will_split: bool      # 是否需要切分
     final_txt: Path       # 最终合并 txt 的落点
     work_dir: Path | None # 切分时的分片工作目录；不切分为 None
+
+
+@dataclass
+class Issue:
+    """一条“未成功”记录，最终统一写入桌面日志。"""
+    category: str  # 原因分类，如“结果已存在”“读不出时长”“转录失败”
+    src: Path      # 涉及的源文件
+    detail: str    # 具体说明
 
 
 # ============================ 基础工具函数 ============================
@@ -141,15 +155,22 @@ def nearest_existing_ancestor(path: Path) -> Path:
     return current
 
 
+def is_part_file(path: Path) -> bool:
+    """判断是否是本工具切分生成的分片（避免重复运行时被当成输入）。"""
+    return path.suffix.lower() == ".flac" and path.name.startswith(PART_PREFIX)
+
+
 def find_media_files(source: Path) -> list[Path]:
-    """单文件直接返回；目录则递归查找所有子目录里的媒体文件。"""
+    """单文件直接返回；目录则递归查找所有子目录里的媒体文件（排除本工具的分片）。"""
     if source.is_file():
         return [source]
     return sorted(
         (
             path.resolve()
             for path in source.rglob("*")
-            if path.is_file() and path.suffix.lower() in MEDIA_EXTENSIONS
+            if path.is_file()
+            and path.suffix.lower() in MEDIA_EXTENSIONS
+            and not is_part_file(path)
         ),
         key=lambda p: str(p).lower(),
     )
@@ -183,12 +204,16 @@ def transcribe_audio_file(model: WhisperModel, input_path: Path) -> str:
         if percent == last_percent:
             continue
         elapsed = time.time() - start_time
-        estimated_total = elapsed / progress if progress > 0 else 0
-        remaining = max(estimated_total - elapsed, 0)
+        # progress 极小时 elapsed/progress 会爆出离谱数值，加一个下限保护。
+        if progress > 0.001:
+            remaining = max(elapsed / progress - elapsed, 0)
+            remaining_str = format_seconds(remaining)
+        else:
+            remaining_str = "计算中"
         print(
             f"\r    分片进度：{percent:3d}% "
             f"({format_seconds(segment.end)} / {format_seconds(duration)}) "
-            f"已用 {format_seconds(elapsed)} 预计剩余 {format_seconds(remaining)}",
+            f"已用 {format_seconds(elapsed)} 预计剩余 {remaining_str}",
             end="",
             flush=True,
         )
@@ -208,7 +233,7 @@ def split_to_audio_parts(
     file_path: Path, workspace: Path, segment_seconds: int, ffmpeg_path: str,
 ) -> list[Path]:
     """只提取第一条音频流并切成 FLAC，避免复制视频容器的关键帧问题。"""
-    pattern = workspace / "part_%04d.flac"
+    pattern = workspace / f"{PART_PREFIX}%04d.flac"
     command = [
         ffmpeg_path, "-hide_banner", "-nostdin", "-loglevel", "error", "-y",
         "-i", str(file_path),
@@ -219,7 +244,7 @@ def split_to_audio_parts(
     print(f"  正在拆分音频，每段约 {segment_seconds // 60} 分钟……")
     subprocess.run(command, check=True)
 
-    parts = sorted(workspace.glob("part_*.flac"))
+    parts = sorted(workspace.glob(f"{PART_PREFIX}*.flac"))
     parts = [part for part in parts if part.stat().st_size > 0]
     if not parts:
         raise RuntimeError("FFmpeg 没有生成任何音频分片，请检查输入文件的音频流。")
@@ -234,34 +259,42 @@ def transcribe_part(model: WhisperModel, part_path: Path) -> str:
     return text
 
 
-# ============================ 计划与预检 ============================
+# ============================ 计划、分类与日志 ============================
 
-def build_plan(config: Config, ffprobe_path: str) -> tuple[list[Job], str, Path | None]:
+def build_plan(
+    config: Config, ffprobe_path: str, media_files: list[Path],
+) -> tuple[list[Job], list[Issue], str, Path | None]:
     """根据配置计算每个文件的输出落点。
 
-    返回 (jobs, effective_mode, dest_root)：
+    返回 (jobs, bad, effective_mode, dest_root)：
+    - jobs：成功读到时长、可以进入下一步的文件计划。
+    - bad：读不出时长的坏文件（记为 Issue，稍后写日志）。
     - effective_mode：真正生效的模式（桌面模式下若目标根就是源目录本身，会退化为同目录）。
     - dest_root：桌面模式且输入是目录时的镜像根文件夹，否则 None。
     """
     desktop = Path.home() / "Desktop"
-    media_files = find_media_files(config.source)
 
     effective_mode = config.mode
     dest_root: Path | None = None
 
     if config.mode == MODE_DESKTOP and config.is_dir:
         dest_root = desktop / config.source.name
-        # 问题 A：源目录本身就在桌面且同名时，镜像根 == 源目录，直接当作“同目录”处理。
+        # 源目录本身就在桌面且同名时，镜像根 == 源目录，直接当作“同目录”处理。
         if dest_root.resolve() == config.source.resolve():
             effective_mode = MODE_BESIDE
             dest_root = None
 
     segment_seconds = config.segment_minutes * 60
     jobs: list[Job] = []
+    bad: list[Issue] = []
     for src in media_files:
-        duration = get_media_duration(src, ffprobe_path)
-        will_split = duration > segment_seconds
+        try:
+            duration = get_media_duration(src, ffprobe_path)
+        except Exception as error:  # noqa: BLE001
+            bad.append(Issue("读不出时长（坏文件或无音频）", src, str(error)))
+            continue
 
+        will_split = duration > segment_seconds
         if effective_mode == MODE_BESIDE:
             base_dir = src.parent
         elif config.is_dir:
@@ -269,47 +302,74 @@ def build_plan(config: Config, ffprobe_path: str) -> tuple[list[Job], str, Path 
             rel = src.parent.resolve().relative_to(config.source.resolve())
             base_dir = dest_root / rel
         else:
-            # 桌面 + 单文件
-            base_dir = desktop
+            base_dir = desktop  # 桌面 + 单文件
 
         final_txt = base_dir / f"{src.stem}.txt"
         work_dir = (base_dir / src.stem) if will_split else None
         jobs.append(Job(src, duration, will_split, final_txt, work_dir))
 
-    return jobs, effective_mode, dest_root
+    return jobs, bad, effective_mode, dest_root
 
 
-def preflight(
-    config: Config, jobs: list[Job], effective_mode: str, dest_root: Path | None,
-) -> list[str]:
-    """开跑前统一检查冲突和可写性，返回问题列表（空列表表示可以开跑）。"""
-    problems: list[str] = []
+def classify_jobs(jobs: list[Job]) -> tuple[list[Job], list[Issue]]:
+    """逐个检查冲突和可写性，把 jobs 分成“可执行”和“跳过（附原因）”两组。"""
+    runnable: list[Job] = []
+    skipped: list[Issue] = []
+    claimed: dict[Path, Path] = {}  # final_txt -> 先占用它的源文件
 
-    # 桌面 + 目录：要新建的镜像根文件夹若已存在（且不是退化为同目录的情况）→ 冲突
-    if config.mode == MODE_DESKTOP and config.is_dir and effective_mode == MODE_DESKTOP:
-        if dest_root is not None and dest_root.exists():
-            problems.append(f"目标文件夹已存在：{dest_root}")
-
-    seen: set[Path] = set()
-    for job in jobs:
-        if job.final_txt.exists():
-            problems.append(f"结果文件已存在：{job.final_txt}")
-        if job.final_txt in seen:
-            problems.append(f"计划内出现重复的结果路径：{job.final_txt}")
-        seen.add(job.final_txt)
-        if job.work_dir is not None and job.work_dir.exists():
-            problems.append(f"分片文件夹已存在：{job.work_dir}")
-
-    # 可写性：检查每个最终目录最近的已存在祖先是否可写
-    unwritable: set[Path] = set()
     for job in jobs:
         ancestor = nearest_existing_ancestor(job.final_txt.parent)
         if not os.access(ancestor, os.W_OK):
-            unwritable.add(ancestor)
-    for path in sorted(unwritable):
-        problems.append(f"目标目录不可写（可能是只读位置）：{path}")
+            skipped.append(Issue("目标目录不可写", job.src, f"不可写：{ancestor}"))
+            continue
+        if job.final_txt.exists():
+            skipped.append(Issue("结果已存在", job.src, f"已存在：{job.final_txt}"))
+            continue
+        if job.work_dir is not None and job.work_dir.exists():
+            skipped.append(Issue("分片文件夹已存在", job.src, f"已存在：{job.work_dir}"))
+            continue
+        if job.final_txt in claimed:
+            skipped.append(Issue(
+                "结果路径与其它文件重复", job.src,
+                f"{job.final_txt} 已被 {claimed[job.final_txt]} 占用（同目录同名不同扩展名）",
+            ))
+            continue
+        claimed[job.final_txt] = job.src
+        runnable.append(job)
 
-    return problems
+    return runnable, skipped
+
+
+def write_issue_log(issues: list[Issue], mode_label: str) -> Path | None:
+    """把未成功记录统一写到桌面的带时间戳日志；无记录则不生成。返回日志路径。"""
+    if not issues:
+        return None
+
+    desktop = Path.home() / "Desktop"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = desktop / f"Audio_to_Text_错误日志_{timestamp}.log"
+
+    lines = [
+        "音视频转文字 —— 未成功文件日志",
+        f"时间：{datetime.now():%Y-%m-%d %H:%M:%S}",
+        f"输出模式：{mode_label}",
+        f"未成功文件数：{len(issues)}",
+        "=" * 48,
+        "",
+    ]
+    for issue in issues:
+        lines.append(f"[{issue.category}] {issue.src}")
+        lines.append(f"    -> {issue.detail}")
+        lines.append("")
+
+    content = "\n".join(lines)
+    try:
+        log_path.write_text(content, encoding="utf-8")
+    except Exception as error:  # noqa: BLE001
+        # 桌面万一写不了，兜底打印到控制台，保证信息不丢。
+        print(f"[警告] 日志写入桌面失败（{error}），以下为完整未成功记录：\n{content}")
+        return None
+    return log_path
 
 
 # ============================ 执行 ============================
@@ -386,7 +446,7 @@ def run_gui() -> Config | None:
         state="readonly", width=6,
     ).pack(side="left")
 
-    # 底部：开始 / 取消
+    # 底部：提示语 + 开始 / 取消
     row4 = tk.Frame(root)
     row4.pack(fill="x", **padding)
     hint_var = tk.StringVar(value="")
@@ -424,6 +484,7 @@ def run_gui() -> Config | None:
     tk.Button(row4, text="开始", command=on_start).pack(side="right", padx=(0, 6))
 
     root.protocol("WM_DELETE_WINDOW", on_cancel)
+    root.bind("<Return>", lambda event: on_start())  # 回车等于点“开始”
     path_entry.focus_set()
     root.mainloop()
 
@@ -446,38 +507,42 @@ def main() -> None:
         raise SystemExit(f"没有找到支持的音视频文件：{config.source}")
     print(f"共找到 {len(media_files)} 个音视频文件，正在读取时长并规划输出……")
 
-    jobs, effective_mode, dest_root = build_plan(config, ffprobe_path)
-
-    problems = preflight(config, jobs, effective_mode, dest_root)
-    if problems:
-        details = "\n".join(f"  - {p}" for p in problems)
-        raise SystemExit(
-            "预检未通过，未处理任何文件。请先解决以下问题后重试：\n" + details
-        )
+    jobs, bad, effective_mode, dest_root = build_plan(config, ffprobe_path, media_files)
+    runnable, skipped = classify_jobs(jobs)
+    issues: list[Issue] = list(bad) + list(skipped)  # 汇总所有未成功记录
 
     mode_label = "同目录" if effective_mode == MODE_BESIDE else "桌面"
     print(f"输出模式：{mode_label}；模型：{config.model}；切分阈值：{config.segment_minutes} 分钟")
-    print(f"预检通过，开始处理 {len(jobs)} 个文件。\n")
+    if issues:
+        print(f"预处理阶段 {len(issues)} 个文件将被跳过（原因见最终日志）。")
+    print(f"待转录：{len(runnable)} 个。\n")
 
-    print(f"正在加载 Whisper {config.model} 模型……")
-    model = WhisperModel(config.model, compute_type="int8")
+    success_count = 0
+    if runnable:
+        print(f"正在加载 Whisper {config.model} 模型……")
+        model = WhisperModel(config.model, compute_type="int8")
 
-    segment_seconds = config.segment_minutes * 60
-    failures: list[str] = []
-    for index, job in enumerate(jobs, 1):
-        print(f"===== ({index}/{len(jobs)}) {job.src.name}"
-              f"（{format_seconds(job.duration)}，{'切分' if job.will_split else '直接转录'}）=====")
-        try:
-            run_job(model, job, segment_seconds, ffmpeg_path)
-        except Exception as error:  # noqa: BLE001
-            failures.append(f"{job.src}：{error}")
-            print(f"  处理失败：{error}")
-        print()
+        segment_seconds = config.segment_minutes * 60
+        for index, job in enumerate(runnable, 1):
+            print(f"===== ({index}/{len(runnable)}) {job.src.name}"
+                  f"（{format_seconds(job.duration)}，{'切分' if job.will_split else '直接转录'}）=====")
+            try:
+                run_job(model, job, segment_seconds, ffmpeg_path)
+                success_count += 1
+            except Exception as error:  # noqa: BLE001
+                issues.append(Issue("转录失败", job.src, str(error)))
+                print(f"  处理失败：{error}")
+            print()
 
-    if failures:
-        details = "\n".join(f"  - {f}" for f in failures)
-        raise SystemExit(f"有 {len(failures)} 个文件失败：\n{details}")
-    print("全部完成。")
+    # 统一写日志（无未成功记录则不生成）
+    log_path = write_issue_log(issues, mode_label)
+
+    print("=" * 48)
+    print(f"处理结束：成功 {success_count} 个，未成功 {len(issues)} 个。")
+    if success_count == 0:
+        print("全部跳过 / 失败，未产出任何结果。")
+    if log_path is not None:
+        print(f"未成功清单已写入日志：{log_path}")
 
 
 if __name__ == "__main__":
