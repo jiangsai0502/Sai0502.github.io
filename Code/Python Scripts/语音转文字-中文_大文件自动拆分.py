@@ -9,7 +9,7 @@
 
 依赖：
     python -m pip install faster-whisper zhconv
-    ffmpeg 和 ffprobe 需要在 PATH 中。
+    ffmpeg 和 ffprobe 需要在 py3.10 中，见 blog 的 ffmpeg 安装说明
 """
 
 from __future__ import annotations
